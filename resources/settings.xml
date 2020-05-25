@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<settings>
+    <category label="Default">
+        <setting label="Youtube API key" type="text"   id="API_key" default=""/>
+        <setting label="Scan for new content daily" type="bool"   id="auto_refresh" default="true"/>
+        <setting label="Start library scan after adding a channel" type="bool"   id="refresh_after_add" default="true"/>
+    </category>
+</settings>
