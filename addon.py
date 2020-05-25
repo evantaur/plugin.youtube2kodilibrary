@@ -2,7 +2,6 @@
 YOUTUBE CHANNELS TO KODI
 """
 import os.path
-import configparser
 import sys
 import json
 import datetime
@@ -23,12 +22,10 @@ addon_path = xbmc.translatePath("special://profile/addon_data/"+addonID)
 base_url = sys.argv[0]
 addon_handle = int(sys.argv[1])
 args = urllib.parse.parse_qs(sys.argv[2][1:])
-
          
 
 
 HOME = xbmc.translatePath("special://profile/library/")
-print(HOME)
 YOUTUBE_DIR = HOME
 CHANNELS = YOUTUBE_DIR+'series'
 MOVIES = YOUTUBE_DIR+'movies'
@@ -36,38 +33,26 @@ MUSIC_VIDEOS = YOUTUBE_DIR+'music_videos'
 VIDEOS = []
 VIDEO_DURATION = {}
 PDIALOG = xbmcgui.DialogProgress()
+LOCAL_CONF = {'update':False}
 
 def build_url(query):
     return base_url + '?' + urllib.parse.urlencode(query)
 
-CONFIG = configparser.ConfigParser()
-if os.path.isfile(addon_path+'//config.ini'):
-    CONFIG.read(addon_path+'//config.ini')
+CONFIG={}
+if os.path.isfile(addon_path+'//config.json'):
+    with open(addon_path+'//config.json', 'r') as f:
+        CONFIG = json.load(f)
 else:
-    CONFIG['api'] = {
-        "API_key" : "sad"
-    }
+    CONFIG = {}
     CONFIG['channels'] = {}
     CONFIG['movies'] = {}
     CONFIG['music_videos'] = {}
 
-
-#home=translatePath('home')
-
-
-
-
-
-
-
-
-
-
-
 def __save():
-    with open(addon_path+'//config.ini', 'w') as configfile:
-        CONFIG.write(configfile)
-        configfile.close()
+    with open(addon_path+'//config.json', 'w', encoding='utf-8') as f:
+        json.dump(CONFIG, f, ensure_ascii=False, indent=4)    
+
+
 
 def print(what):
     xbmcgui.Dialog().ok(addonname, what)
@@ -96,15 +81,13 @@ def __check_key_validity(key):
 
 
 def __add_channel(channel_id):
-    print('adding: '+channel_id)
-    if 'channels' not in CONFIG:
-        CONFIG['channels'] = {}
     data = {}
     channel_url = "https://www.googleapis.com/youtube/v3/channels?part=brandingSettings,contentDetails,contentOwnerDetails,id,localizations,snippet,statistics,status,topicDetails&id="+channel_id+"&key="+addon.getSetting('API_key')
     req = requests.get(channel_url)
     reply = json.loads(req.content)
     if 'items' not in reply:
         raise SystemExit("no such channel")
+    data['channel_id'] = channel_id
     data['title'] = reply['items'][0]['brandingSettings']['channel']['title']
     if 'description' in reply['items'][0]['brandingSettings']['channel']:
         data['plot'] = reply['items'][0]['brandingSettings']['channel']['description']
@@ -118,8 +101,11 @@ def __add_channel(channel_id):
     uploads = reply['items'][0]['contentDetails']['relatedPlaylists']['uploads']
     data['uploader_stripped'] = re.sub(r'[^\w\s]', '', data['title']).replace(" ", "_")
     Path(CHANNELS+'\\'+re.sub(r'[^\w\s]', '', data['title'])).mkdir(parents=True, exist_ok=True)
-    if data['uploader_stripped']+'_playlist_id' not in CONFIG['channels']:
-        CONFIG['channels'][data['uploader_stripped']+'_playlist_id'] = uploads
+    if channel_id not in CONFIG['channels']:
+        CONFIG['channels'][channel_id] = {}
+        CONFIG['channels'][channel_id]['channel_name'] = data['title']
+        CONFIG['channels'][channel_id]['channel_type'] = 'series' #temporarily until music videos and movies are implemented
+        CONFIG['channels'][channel_id]['playlist_id'] = uploads
     output = """
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n
     <tvshow>
@@ -144,31 +130,33 @@ def __add_channel(channel_id):
     file.write(output)
     file.close()
     __save()
-    __parse_uploads(uploads)
-def __parse_uploads(playlist_id, *args):
-    if args:
-        url = "https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50&playlistId="+playlist_id+"&pageToken="+args[0]+"&key="+addon.getSetting('API_key')
+    if 'last_page' in CONFIG['channels'][channel_id]:
+        __parse_uploads(uploads,CONFIG['channels'][channel_id]['last_page'])
+    else:
+        __parse_uploads(uploads,None)
+
+def __parse_uploads(playlist_id, page_token=None, update=False):
+    if page_token:
+        url = "https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50&playlistId="+playlist_id+"&pageToken="+page_token+"&key="+addon.getSetting('API_key')
     else:
         url = "https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50&playlistId="+playlist_id+"&key="+addon.getSetting('API_key')
     req = requests.get(url)
     reply = json.loads(req.content)
     vid = []
     totalResults=int(reply['pageInfo']['totalResults'])
-    PDIALOG.create('Fetching channel info', 'Please wait...')        
+    if LOCAL_CONF['update'] == False:
+        PDIALOG.create('Fetching channel info', 'Please wait...')        
     for item in reply['items']:
-        #print(x['snippet']['resourceId']['videoId'])
         VIDEOS.append(item)
-        #kyrp.update(item['snippet']['title'], int(totalResults * len(VIDEOS) / 100))
-        #PDIALOG.update(int(100 / 100),'das')
-        PDIALOG.update(int(100 * len(VIDEOS) / totalResults), 'Downloading info: ' + str(len(VIDEOS)) + '/' + str(totalResults) )
+        if LOCAL_CONF['update'] == False:
+            PDIALOG.update(int(100 * len(VIDEOS) / totalResults), 'Downloading info: ' + str(len(VIDEOS)) + '/' + str(totalResults) )
         vid.append(item['snippet']['resourceId']['videoId'])
-        #PLAYLIST.items[i].snippet.resourceId.videoId
-
     __get_video_details(vid)
     if reply.get('nextPageToken'):
+        CONFIG['channels'][reply['items'][0]['snippet']['channelId']]['last_page'] = reply['nextPageToken']
         __parse_uploads(playlist_id, reply['nextPageToken'])
     else:
-        __render()
+            __render()
 
 
 def __get_video_details(array):
@@ -178,12 +166,7 @@ def __get_video_details(array):
     req = requests.get(url)
     reply = json.loads(req.content)
     for item in reply['items']:
-        #print(item['id'])
-        #print(__yt_duration(item['contentDetails']['duration']))
-
         VIDEO_DURATION[item['id']] = __yt_duration(item['contentDetails']['duration'])
-    #DETAILS.items[i].contentDetails.duration
-    #print(reply)
 
 
 def __yt_duration(in_time):
@@ -241,7 +224,6 @@ for instructions see: https://developers.google.com/youtube/v3/getting-started
 
 
 addon_handle = int(sys.argv[1])
-#print(str(sys.argv))
 
 SEARCH_QUERY={}
 def __search(query):
@@ -265,57 +247,49 @@ def __search(query):
         SEARCH_QUERY[item['snippet']['title']]['id'] = item['snippet']['channelId']
         SEARCH_QUERY[item['snippet']['title']]['description'] = item['snippet']['description']
         SEARCH_QUERY[item['snippet']['title']]['thumbnail'] = item['snippet']['thumbnails']['high']['url']
-        #print(items['snippet']['title'] +' - '+ items['snippet']['channelId'] +'\n' + items['snippet']['description'] +'\n_______________________')
     __folders()
 
 
 
 
 
-def __menu(*args):
-    menuItems = ['Add Channel', 'List Channels','Refresh']
-    if args:
-        menuItems=(args[0])
-    dialog = xbmcgui.Dialog()
-    ret = dialog.select(addonname, menuItems)
-    if menuItems[ret] == 'Add Channel':
-        query=ask('','Search for a channel')
-        if query:
-            __search(query)
-        else:
-            __menu()
-    elif menuItems[ret] == 'List Channels':
-        __folders()
-
-
-
-
-
 def __render():
-    PDIALOG.create('Importing channel', 'Please wait...')
-    #pDialog = xbmcgui.DialogProgressBG()
+    if len(VIDEOS) <= 0:
+        raise SystemExit()
+    if LOCAL_CONF['update'] == False:
+        PDIALOG.create('Importing channel', 'Please wait...')
     year = 0
     episode = 0
     VIDEOS.reverse()
     l_count=0
+    channelId=VIDEOS[0]['snippet']['channelId']
+    if 'last_video' in CONFIG['channels'][VIDEOS[0]['snippet']['channelId']]:
+        year = int(CONFIG['channels'][VIDEOS[0]['snippet']['channelId']]['last_video']['season'])
+        episode = int(CONFIG['channels'][VIDEOS[0]['snippet']['channelId']]['last_video']['episode'])
+        latest_aired = int(CONFIG['channels'][VIDEOS[0]['snippet']['channelId']]['last_video']['aired'])
+        last_video_id = CONFIG['channels'][VIDEOS[0]['snippet']['channelId']]['last_video']['video_id']
     for item in VIDEOS:
         data = {}
-        #print(item)
-        data['author'] = item['snippet']['channelTitle']
-        data['title'] = item['snippet']['title']
-        data['plot'] = item['snippet']['description']
-        #aired_exact=datetime.datetime(item['snippet']['publishedAt'])
-        #2020-03-06T18:00:05Z
+        data['video_id'] = item['snippet']['resourceId']['videoId']
         aired = item['snippet']['publishedAt'].split('T')[0]
         ttime = item['snippet']['publishedAt'].split('T')[1]
         data['aired'] = aired
-        data['aired_exact'] = datetime.datetime(int(aired.split('-')[0]), int(aired.split('-')[1]), int(aired.split('-')[2]), int(ttime.split(':')[0]), int(ttime.split(':')[1]), 0, 0)  # pylint: disable=line-too-long      
+        aired_datetime = datetime.datetime(int(aired.split('-')[0]), int(aired.split('-')[1]), int(aired.split('-')[2]), int(ttime.split(':')[0]), int(ttime.split(':')[1]), 0, 0)  # pylint: disable=line-too-long      
+        aired_timestamp = int((aired_datetime - datetime.datetime(1970,1,1)).total_seconds())
+        try:
+            if latest_aired > aired_timestamp or last_video_id == data['video_id']:
+                continue
+        except NameError:
+            pass
+        data['author'] = item['snippet']['channelTitle']
+        data['channelId'] = item['snippet']['channelId']
+        data['title'] = item['snippet']['title']
+        data['plot'] = item['snippet']['description']
         season = int(aired.split('-')[0])
         if year != season:
             year = season
             season = year
             episode = 0
-        data['video_id'] = item['snippet']['resourceId']['videoId']
         data['video_duration'] = VIDEO_DURATION[data['video_id']]
         if 'maxres' in item['snippet']['thumbnails']:
             data['thumb'] = item['snippet']['thumbnails']['maxres']['url']
@@ -329,8 +303,8 @@ def __render():
         data['episode'] = episode
         data['season'] = season
         l_count += 1
-        #pDialog.update(int(l_count * len(VIDEOS) / 100), message='S'+str(data['season'])+'E'+str(data['episode']))
-        PDIALOG.update(int(100 * l_count / len(VIDEOS)), data['title'] )
+        if LOCAL_CONF['update'] == False:
+            PDIALOG.update(int(100 * l_count / len(VIDEOS)), data['title'] )
         Path(CHANNELS+'\\'+re.sub(r'[^\w\s]', '', data['author'])+'\\'+str(data['season'])).mkdir(parents=True, exist_ok=True)
         output = """
 <episodedetails>
@@ -360,65 +334,56 @@ def __render():
         file = open(write_file, 'w', encoding="utf-8")
         file.write('plugin://plugin.video.youtube/play/?video_id='+data['video_id'])
         file.close()
+        CONFIG['channels'][data['channelId']]['last_video'] = {'video_id' : data['video_id'], 'aired' : aired_timestamp , 'season' : str(data['season']) , 'episode' : str(data['episode']) }
         __save()
         xbmc.executebuiltin("UpdateLibrary(video)")
 
 
 def __refresh():
-    for key in CONFIG['channels']:
+    for items in CONFIG['channels']:
         VIDEOS.clear()
         VIDEO_DURATION.clear()
-
-        if '_id' in key[-3:]:
-            __parse_uploads(CONFIG['channels'][key])
+        LOCAL_CONF['update'] = True
+        if 'last_page' in CONFIG['channels'][items]:
+            __parse_uploads(CONFIG['channels'][items]['playlist_id'],CONFIG['channels'][items]['last_page'],update=True)
+        else:
+            __parse_uploads(CONFIG['channels'][items]['playlist_id'],None, update=True)
 
 
 
 
 def __folders(*args):
-    #url = print('yay')
-    #print(str(sys.argv[2]))
     for items in SEARCH_QUERY:
         xbmc.log(str(items))
         li = xbmcgui.ListItem(items)
         info = {'plot': SEARCH_QUERY[items]['description']}
         li.setInfo('video', info)
         li.setArt({'thumb': SEARCH_QUERY[items]['thumbnail']})
-        url = build_url({'mode': 'ListItem', 'foldername': SEARCH_QUERY[items]['id'] })
+        url = build_url({'mode': 'AddItem', 'foldername': SEARCH_QUERY[items]['id'] })
         xbmcplugin.addDirectoryItem(handle=addon_handle, url=url, listitem=li, isFolder=True)
     xbmcplugin.endOfDirectory(addon_handle)
     
+def logger(a):
+    xbmc.log(str(a),level=xbmc.LOGNOTICE)
 
+def __menu(*args):
+    menuItems = ['Add Channel', 'List Channels','Refresh']
+    if args:
+        menuItems=(args[0])
+    dialog = xbmcgui.Dialog()
+    ret = dialog.select(addonname, menuItems)
+    if menuItems[ret] == 'Add Channel':
+        query=ask('','Search for a channel')
+        if query:
+            LOCAL_CONF['update'] = False
+            __search(query)
+        else:
+            __menu()
+    elif menuItems[ret] == 'List Channels':
+        __folders()
+    elif menuItems[ret] == 'Refresh':
+        __refresh()
 
-#__menu()
-
-
-
-
-
-
-
-
-
-class ProgressBar(object):
-    def __init__(self, title, text, progress):
-        self.title = title
-        self.text = text
-        self.progress = 1
-        self.pDialog = xbmcgui.DialogProgressBG()
-        #self.create(title=title, text=text)    
-        #self.update(progress=0,text=None)
-    def create(self):
-        self.pDialog.create(self.title, self.text)
-        #print(f"I am a cat. My name is {self.name}. I am {self.age} years old.")
-
-    def update(self,text,progress):
-        self.pDialog.update(progress,text)
-
-
-##########l_count * len(VIDEOS) / 100
-#kyrp = ProgressBar('Downloading channel info','kulli',0)
-#kyrp.create()
 
 __start_up()
 
@@ -426,12 +391,7 @@ mode = args.get('mode', None)
 
 if mode is None:
     __menu()
-elif mode[0] == 'ListItem':
+elif mode[0] == 'AddItem':
     __add_channel(args['foldername'][0])
-    #xbmc.executebuiltin("XBMC.ActivateWindow(Home)")
 
 
-
-#
-#xbmc.UpdateLibrary()
-#xbmc.executebuiltin("UpdateLibrary(video)")
