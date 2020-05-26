@@ -13,7 +13,7 @@ import xbmc
 import xbmcaddon
 import xbmcgui
 import xbmcplugin
-
+import xml.etree.ElementTree as ET
  
 addon       = xbmcaddon.Addon()
 addonname   = addon.getAddonInfo('name')
@@ -161,7 +161,6 @@ def __parse_uploads(playlist_id, page_token=None, update=False):
 
 def __get_video_details(array):
     get = ','.join(array)
-    #print('***'+get)
     url = "https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id="+get+"&key="+addon.getSetting('API_key')
     req = requests.get(url)
     reply = json.loads(req.content)
@@ -187,21 +186,34 @@ def __yt_duration(in_time):
 
 
 
-
+def __check_if_youtube_addon_has_api_key():
+    yt_api_key_path=xbmc.translatePath("special://profile/addon_data/plugin.video.youtube/settings.xml")
+    if os.path.isfile(yt_api_key_path):
+        tree = ET.parse(yt_api_key_path)
+        root = tree.getroot()
+        for sets in root.findall('setting'):
+            xml_key = sets.get('id')
+            if xml_key == 'youtube.api.key':
+                if sets.text:
+                    dialog = xbmcgui.Dialog()
+                    ret = dialog.yesno(addonname, 'would you like to use the same API key you have set on YouTube addon?')
+                    if ret == True:
+                        return sets.text
+    return None
 
 
 def __start_up():
-#    Path(CHANNELS).mkdir(parents=True, exist_ok=True)
-#    Path(MOVIES).mkdir(parents=True, exist_ok=True)
-#    Path(MUSIC_VIDEOS).mkdir(parents=True, exist_ok=True)
     API_KEY = addon.getSetting('API_key')
-#    print(API_KEY)
     if API_KEY == "":
-        print("""
+        ciyapi=__check_if_youtube_addon_has_api_key()
+        if ciyapi != None:
+            API_KEY=ciyapi
+        else:
+            print("""
 You\'ll need to aquire YouTube API key for this addon to work.
 for instructions see: https://developers.google.com/youtube/v3/getting-started
 """)
-        API_KEY=ask('','API key')
+            API_KEY=ask('','API key')
         if API_KEY != "":
             if __check_key_validity(API_KEY) == 'valid':
                 addon.setSetting('API_key',API_KEY)
@@ -213,14 +225,6 @@ for instructions see: https://developers.google.com/youtube/v3/getting-started
             print('Nothing given')
             raise SystemExit
     
-
-
-
-
-
-
-
-
 
 
 addon_handle = int(sys.argv[1])
