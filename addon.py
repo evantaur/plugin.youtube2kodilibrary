@@ -156,7 +156,7 @@ def __parse_uploads(playlist_id, page_token=None, update=False):
         CONFIG['channels'][reply['items'][0]['snippet']['channelId']]['last_page'] = reply['nextPageToken']
         __parse_uploads(playlist_id, reply['nextPageToken'])
     else:
-            __render()
+        __render()
 
 
 def __get_video_details(array):
@@ -184,8 +184,9 @@ def __yt_duration(in_time):
     return duration
 
 
-
-
+    ###########################
+    # Yeah if you know how to make this without looping the whole file let me know...
+    ###########################
 def __check_if_youtube_addon_has_api_key():
     yt_api_key_path=xbmc.translatePath("special://profile/addon_data/plugin.video.youtube/settings.xml")
     if os.path.isfile(yt_api_key_path):
@@ -376,21 +377,22 @@ def __menu(*args):
         menuItems=(args[0])
     dialog = xbmcgui.Dialog()
     ret = dialog.select(addonname, menuItems)
-    if menuItems[ret] == 'Add Channel':
+    if ret == -1 or ret == None:
+        xbmc.executebuiltin("Action(Back)")
+        xbmc.executebuiltin("Action(Back)")
+    elif menuItems[ret] == 'Add Channel':
         query=ask('','Search for a channel')
         if query:
             LOCAL_CONF['update'] = False
             __search(query)
-        else:
-            __menu()
     elif menuItems[ret] == 'List Channels':
         __folders()
     elif menuItems[ret] == 'Refresh':
         __refresh()
 
 
-__start_up()
 
+__start_up()
 mode = args.get('mode', None)
 
 if mode is None:
