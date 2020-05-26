@@ -35,7 +35,7 @@ VIDEO_DURATION = {}
 PDIALOG = xbmcgui.DialogProgress()
 LOCAL_CONF = {'update':False}
 
-def build_url(query):
+def __build_url(query):
     return base_url + '?' + urllib.parse.urlencode(query)
 
 CONFIG={}
@@ -54,11 +54,11 @@ def __save():
 
 
 
-def print(what):
+def __print(what):
     xbmcgui.Dialog().ok(addonname, what)
 
 
-def ask(name, *args):
+def __ask(name, *args):
 
     if args:
         header = args[0]
@@ -210,20 +210,20 @@ def __start_up():
         if ciyapi != None:
             API_KEY=ciyapi
         else:
-            print("""
+            __print("""
 You\'ll need to aquire YouTube API key for this addon to work.
 for instructions see: https://developers.google.com/youtube/v3/getting-started
 """)
-            API_KEY=ask('','API key')
+            API_KEY=__ask('','API key')
         if API_KEY != "":
             if __check_key_validity(API_KEY) == 'valid':
                 addon.setSetting('API_key',API_KEY)
-                print('Key is valid, thank you!')
+                __print('Key is valid, thank you!')
             else:
-                print('Key is invalid')
+                __print('Key is invalid')
                 raise SystemExit(" error")
         else:
-            print('Nothing given')
+            __print('Nothing given')
             raise SystemExit
     
 
@@ -237,7 +237,7 @@ def __search(query):
     req = requests.get(channel_url)
     reply = json.loads(req.content)
     if not 'items' in reply:
-        print('No such channel')
+        __print('No such channel')
         raise SystemExit(" error")
     ###########################
     # No idea why the first(0) item not showing on results, hack till i do
@@ -364,11 +364,11 @@ def __folders(*args):
         info = {'plot': SEARCH_QUERY[items]['description']}
         li.setInfo('video', info)
         li.setArt({'thumb': SEARCH_QUERY[items]['thumbnail']})
-        url = build_url({'mode': 'AddItem', 'foldername': SEARCH_QUERY[items]['id'] })
+        url = __build_url({'mode': 'AddItem', 'foldername': SEARCH_QUERY[items]['id'] })
         xbmcplugin.addDirectoryItem(handle=addon_handle, url=url, listitem=li, isFolder=True)
     xbmcplugin.endOfDirectory(addon_handle)
     
-def logger(a):
+def __logger(a):
     xbmc.log(str(a),level=xbmc.LOGNOTICE)
 
 def __menu(*args):
@@ -381,7 +381,7 @@ def __menu(*args):
         xbmc.executebuiltin("Action(Back)")
         xbmc.executebuiltin("Action(Back)")
     elif menuItems[ret] == 'Add Channel':
-        query=ask('','Search for a channel')
+        query=__ask('','Search for a channel')
         if query:
             LOCAL_CONF['update'] = False
             __search(query)
