@@ -11,4 +11,4 @@ if you have set custom api key for YouTube addon you should be able to skip this
 ###### Video source
 use:
 **special://profile/library/series**
-and for information provider choose local
+and for information provider **choose local information only** <-- This is important unless you want shows like Stargate randomly appearing to your library.
