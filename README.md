@@ -1,6 +1,9 @@
 # plugin.youtube2kodilibrary
 YouTube channels to KODI
 
+LEIA version here:
+https://github.com/evantaur/plugin.youtube2kodilibrary/tree/Leia
+
 ###### API key
 
 You'll need YouTube API key for this to work, a good guide would be:
