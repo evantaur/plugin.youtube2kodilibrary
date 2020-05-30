@@ -184,24 +184,15 @@ def __yt_duration(in_time):
     return duration
 
 
-    ###########################
-    # Yeah if you know how to make this without looping the whole file let me know...
-    ###########################
 def __check_if_youtube_addon_has_api_key():
-    yt_api_key_path=xbmc.translatePath("special://profile/addon_data/plugin.video.youtube/settings.xml")
-    if os.path.isfile(yt_api_key_path):
-        tree = ET.parse(yt_api_key_path)
-        root = tree.getroot()
-        for sets in root.findall('setting'):
-            xml_key = sets.get('id')
-            if xml_key == 'youtube.api.key':
-                if sets.text:
-                    dialog = xbmcgui.Dialog()
-                    ret = dialog.yesno(addonname, 'would you like to use the same API key you have set on YouTube addon?')
-                    if ret == True:
-                        return sets.text
-    return None
-
+    try:
+        yt_api_key = xbmcaddon.Addon('plugin.video.youtube').getSetting('youtube.api.key')
+        if yt_api_key:
+            ret = xbmcgui.Dialog().yesno(addonname, u'would you like to use the same API key you have set on YouTube addon?')
+            if ret:
+                return yt_api_key
+    except RuntimeError:
+        return None
 
 def __start_up():
     API_KEY = addon.getSetting('API_key')
