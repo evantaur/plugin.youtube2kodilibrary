@@ -10,6 +10,7 @@ import datetime
 import re
 import requests
 import urllib
+import time
 from urlparse import urlparse
 #from pathlib import Path
 import xbmc
@@ -211,7 +212,7 @@ def __check_if_youtube_addon_has_api_key():
 
 
 def __start_up():
-    __logger(CONFIG)
+    #__logger(CONFIG)
     __save()
     API_KEY = addon.getSetting(u'API_key')
     if API_KEY == u"":
@@ -354,14 +355,23 @@ def __render():
 
 
 def __refresh():
-    for items in CONFIG[u'channels']:
-        VIDEOS.clear()
-        VIDEO_DURATION.clear()
-        LOCAL_CONF[u'update'] = True
-        if u'last_page' in CONFIG[u'channels'][items]:
-            __parse_uploads(CONFIG[u'channels'][items][u'playlist_id'],CONFIG[u'channels'][items][u'last_page'],update=True)
+    __logger('refresh')
+    xbmcgui.Dialog().notification(addonname, 'Updating channels', xbmcgui.NOTIFICATION_INFO, 5000)
+    for items in CONFIG['channels']:
+        try:
+            VIDEOS.clear()
+            VIDEO_DURATION.clear()
+        except AttributeError:
+            del VIDEOS[:]
+            VIDEO_DURATION = {}
+        LOCAL_CONF['update'] = True
+        if 'last_page' in CONFIG['channels'][items]:
+            __parse_uploads(CONFIG['channels'][items]['playlist_id'],CONFIG['channels'][items]['last_page'],update=True)
         else:
-            __parse_uploads(CONFIG[u'channels'][items][u'playlist_id'],None, update=True)
+            __parse_uploads(CONFIG['channels'][items]['playlist_id'],None, update=True)
+    CONFIG['last_scan'] = int(time.time())
+    __save()
+    xbmcgui.Dialog().notification(addonname, 'Update finished', xbmcgui.NOTIFICATION_INFO, 5000)
 
 
 
@@ -379,24 +389,24 @@ def __folders(*args):
     
 
 def __menu(*args):
-    menuItems = [u'Add Channel', u'List Channels',u'Refresh']
+    menuItems = ['Add Channel', 'List Channels','Refresh']
     if args:
         menuItems=(args[0])
     dialog = xbmcgui.Dialog()
     ret = dialog.select(addonname, menuItems)
     if ret == -1 or ret == None:
-        xbmc.executebuiltin(u"Action(Back)")
-        xbmc.executebuiltin(u"Action(Back)")
-    elif menuItems[ret] == u'Add Channel':
-        query=__ask(u'',u'Search for a channel')
+        xbmc.executebuiltin("Action(Back)")
+        xbmc.executebuiltin("Action(Back)")
+    elif menuItems[ret] == 'Add Channel':
+        query=__ask('','Search for a channel')
         if query:
-            LOCAL_CONF[u'update'] = False
+            LOCAL_CONF['update'] = False
             __search(query)
-    elif menuItems[ret] == u'List Channels':
+    elif menuItems[ret] == 'List Channels':
         __folders()
-    elif menuItems[ret] == u'Refresh':
+    elif menuItems[ret] == 'Refresh':
+        LOCAL_CONF['update'] = False
         __refresh()
-
 
 
 __start_up()
@@ -410,11 +420,13 @@ try:
 except IndexError:
     foldername = None
 
-
-if mode == None :
+__logger(mode)
+if mode is None:
     __menu()
-elif mode == u'AddItem':
-    __add_channel(foldername)
+elif mode == 'AddItem':
+    __add_channel(args['foldername'][0])
+elif 'Refresh' in mode:
+    __refresh()
 #
 
 #__logger(args)
