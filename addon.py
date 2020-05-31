@@ -500,7 +500,7 @@ except IndexError:
 if mode is None:
     __folders('menu')
 elif mode == 'AddItem':
-    __add_channel(args['foldername'][0])
+    __add_channel(foldername)
 elif mode == 'ManageItem':
     if foldername == 'Add_Channel':
         query=__ask('','Search for a channel')
