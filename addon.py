@@ -424,7 +424,7 @@ __logger(mode)
 if mode is None:
     __menu()
 elif mode == 'AddItem':
-    __add_channel(args['foldername'][0])
+    __add_channel(foldername)
 elif 'Refresh' in mode:
     __refresh()
 #
