@@ -17,6 +17,9 @@ if xbmcvfs.exists(addon_path+'//config.json'):
         CONFIG = json.load(f)
         if 'last_scan' in CONFIG:
             LAST_SCAN = CONFIG['last_scan']
+else:
+    LAST_SCAN = NOW
+
 
 if __name__ == '__main__':
     monitor = xbmc.Monitor()
