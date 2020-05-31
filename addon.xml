@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="plugin.youtube2kodilibrary" name="YouTube to Library" version="0.0.1" provider-name="Evantaur">
+<addon id="plugin.youtube2kodilibrary" name="YouTube to Library" version="0.0.3" provider-name="Evantaur">
     <requires>
         <import addon="xbmc.python" version="2.20.0"/>
         <import addon="script.module.requests" version="2.12.4"/>
 
 
     </requires>
+    <extension point="xbmc.service" library="service.py" />
     <extension point="xbmc.python.pluginsource" library="addon.py">
         <provides>video</provides>
     </extension>
@@ -20,16 +21,21 @@
         <email></email>
         <source>https://github.com/evantaur/plugin.youtube2kodilibrary</source>
         <news>Changelog:
+            v0.0.3 Alpha (2020/05/31)
+            - Added management for channels.            
+            v0.0.2 Alpha (2020/05/30)
+            - Added background service.
             v0.0.1 Alpha (2020/05/21)
-            - Released Alpha
+            - Released Alpha.
         </news>
         <disclaimer></disclaimer>
         <assets>
             <icon>resources/icon.png</icon>
             <fanart>resources/fanart.jpg</fanart>
-            <screenshot>resources/screenshot-01.png</screenshot>
-            <screenshot>resources/screenshot-02.png</screenshot>
-            <screenshot>resources/screenshot-03.png</screenshot>
+            <screenshot>resources/screenshot_01.jpg</screenshot>
+            <screenshot>resources/screenshot_02.jpg</screenshot>
+            <screenshot>resources/screenshot_03.jpg</screenshot>
+            <screenshot>resources/screenshot_04.jpg</screenshot>
         </assets>
     </extension>
 </addon>

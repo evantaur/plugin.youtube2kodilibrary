@@ -19,6 +19,7 @@ import xbmcgui
 import xbmcplugin
 import xbmcvfs
 import codecs
+import shutil
 from io import open
  
 
@@ -31,6 +32,7 @@ addon       = xbmcaddon.Addon()
 addonname   = addon.getAddonInfo(u'name')
 addonID       = addon.getAddonInfo(u'id')
 addon_path = xbmc.translatePath(u"special://profile/addon_data/"+addonID)
+addon_resources = addon.getAddonInfo("path") + '/resources/'
 base_url = sys.argv[0]
 addon_handle = int(sys.argv[1])
 args = str(sys.argv[2][1:])
@@ -119,9 +121,14 @@ def __add_channel(channel_id):
     xbmcvfs.mkdirs(CHANNELS+u'\\'+re.sub(ur'[^\w\s]', u'', data[u'title']))
     if channel_id not in CONFIG[u'channels']:
         CONFIG[u'channels'][channel_id] = {}
-        CONFIG[u'channels'][channel_id][u'channel_name'] = data[u'title']
-        CONFIG[u'channels'][channel_id][u'channel_type'] = u'series' #temporarily until music videos and movies are implemented
-        CONFIG[u'channels'][channel_id][u'playlist_id'] = uploads
+    CONFIG['channels'][channel_id]['channel_name'] = data['title']
+    CONFIG['channels'][channel_id]['channel_type'] = 'series' #temporarily until music videos and movies are implemented
+    CONFIG['channels'][channel_id]['branding'] = {}
+    CONFIG['channels'][channel_id]['branding']['thumbnail'] = data['thumb']
+    CONFIG['channels'][channel_id]['branding']['fanart'] = data['fanart']
+    CONFIG['channels'][channel_id]['branding']['banner'] = data['banner']
+    CONFIG['channels'][channel_id]['branding']['description'] = data['plot']
+    CONFIG['channels'][channel_id]['playlist_id'] = uploads    
     output = u"""
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n
     <tvshow>
@@ -158,6 +165,19 @@ def __parse_uploads(playlist_id, page_token=None, update=False):
         url = u"https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50&playlistId="+playlist_id+u"&key="+addon.getSetting(u'API_key')
     req = requests.get(url)
     reply = json.loads(req.content)
+    try:
+        if 'error' in reply:
+            e_reason=reply['error']['errors'][0]['reason']
+            e_message=reply['error']['errors'][0]['message']
+            if e_reason == 'quotaExceeded':
+                e_message = "The request cannot be completed because you have exceeded your quota."
+            xbmcgui.Dialog().notification(addonname, e_message, xbmcgui.NOTIFICATION_ERROR, 10000)
+            __logger(e_message)
+            if len(VIDEOS) >= 1:
+                __render()
+            raise SystemExit(" error: quota exceeded")
+    except NameError:
+        pass    
     vid = []
     totalResults=int(reply[u'pageInfo'][u'totalResults'])
     if LOCAL_CONF[u'update'] == False:
@@ -181,6 +201,19 @@ def __get_video_details(array):
     url = u"https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id="+get+u"&key="+addon.getSetting(u'API_key')
     req = requests.get(url)
     reply = json.loads(req.content)
+    try:
+        if 'error' in reply:
+            e_reason=reply['error']['errors'][0]['reason']
+            e_message=reply['error']['errors'][0]['message']
+            if e_reason == 'quotaExceeded':
+                e_message = "The request cannot be completed because you have exceeded your quota."
+            xbmcgui.Dialog().notification(addonname, e_message, xbmcgui.NOTIFICATION_ERROR, 10000)
+            __logger(e_message)
+            if len(VIDEOS) >= 1:
+                __render()
+            raise SystemExit(" error: quota exceeded")
+    except NameError:
+        pass     
     for item in reply[u'items']:
         VIDEO_DURATION[item[u'id']] = str(__yt_duration(item[u'contentDetails'][u'duration']))
 
@@ -246,6 +279,16 @@ def __search(query):
     channel_url = u"https://www.googleapis.com/youtube/v3/search?type=channel&part=id,snippet&maxResults=50&q="+query+u"&key="+addon.getSetting(u'API_key')
     req = requests.get(channel_url)
     reply = json.loads(req.content)
+    try:
+        if 'error' in reply:
+            e_reason=reply['error']['errors'][0]['reason']
+            e_message=reply['error']['errors'][0]['message']
+            if e_reason == 'quotaExceeded':
+                e_message = "The request cannot be completed because you have exceeded your quota."
+            __print(e_message)
+            raise SystemExit(" error")
+    except NameError:
+        pass        
     if not u'items' in reply:
         __print(u'No such channel')
         raise SystemExit(u" error")
@@ -262,7 +305,7 @@ def __search(query):
         SEARCH_QUERY[item[u'snippet'][u'title']][u'id'] = item[u'snippet'][u'channelId']
         SEARCH_QUERY[item[u'snippet'][u'title']][u'description'] = item[u'snippet'][u'description']
         SEARCH_QUERY[item[u'snippet'][u'title']][u'thumbnail'] = item[u'snippet'][u'thumbnails'][u'high'][u'url']
-    __folders()
+    __folders('search')
 
 
 
@@ -355,7 +398,6 @@ def __render():
 
 
 def __refresh():
-    __logger('refresh')
     xbmcgui.Dialog().notification(addonname, 'Updating channels', xbmcgui.NOTIFICATION_INFO, 5000)
     for items in CONFIG['channels']:
         try:
@@ -376,40 +418,69 @@ def __refresh():
 
 
 
-def __folders(*args):
-    for items in SEARCH_QUERY:
-        #__logger(unicode(items))
-        li = xbmcgui.ListItem(items)
-        info = {u'plot': SEARCH_QUERY[items][u'description']}
-        li.setInfo(u'video', info)
-        li.setArt({u'thumb': SEARCH_QUERY[items][u'thumbnail']})
-        url = __build_url({u'mode': u'AddItem', u'foldername': SEARCH_QUERY[items][u'id'] })
-        xbmcplugin.addDirectoryItem(handle=addon_handle, url=url, listitem=li, isFolder=True)
+def __folders(flag):
+    if 'search' in flag:
+        for items in SEARCH_QUERY:
+            li = xbmcgui.ListItem(items)
+            info = {'plot': SEARCH_QUERY[items]['description']}
+            li.setInfo('video', info)
+            li.setArt({'thumb': SEARCH_QUERY[items]['thumbnail']})
+            url = __build_url({'mode': 'AddItem', 'foldername': SEARCH_QUERY[items]['id'] })
+            xbmcplugin.addDirectoryItem(handle=addon_handle, url=url, listitem=li, isFolder=True)
+    elif 'Manage' in flag:
+        for items in CONFIG['channels']:
+            plot = ""
+            thumb = addon_resources+'/media/youtube_logo.jpg'
+            if 'branding' in CONFIG['channels'][items]:
+                thumb = CONFIG['channels'][items]['branding']['thumbnail']
+                plot = CONFIG['channels'][items]['branding']['description']
+                fanart = CONFIG['channels'][items]['branding']['fanart']
+                banner = CONFIG['channels'][items]['branding']['banner']
+            li = xbmcgui.ListItem(CONFIG['channels'][items]['channel_name'])
+            info = {'plot': plot}
+            li.setInfo('video', info)
+            li.setArt({'thumb': thumb})
+            li.addContextMenuItems([('Rescan', ''),('Remove','')])
+            url = __build_url({'mode': 'C_MENU', 'foldername': items })
+            xbmcplugin.addDirectoryItem(handle=addon_handle, url=url, listitem=li, isFolder=True)
+    elif 'menu' in flag:
+        menuItems = {'Add Channel':'Add channels', 'Manage':'Manage channelino','Refresh all':'Refresh challeino'}
+        for items in menuItems:
+            pass
+            ezy=items.replace(' ','_')
+            thumb = addon_resources+'/media/buttons/'+ezy+'.png'
+            li = xbmcgui.ListItem(items)
+            info = {'plot': menuItems[items]}
+            li.setInfo('video', info)
+            li.setArt({'thumb': thumb})
+            #li.addContextMenuItems([('Rescan', ''),('Remove','')])
+            url = __build_url({'mode': 'ManageItem', 'foldername': ezy })
+            xbmcplugin.addDirectoryItem(handle=addon_handle, url=url, listitem=li, isFolder=True)
+
     xbmcplugin.endOfDirectory(addon_handle)
-    
 
-def __menu(*args):
-    menuItems = ['Add Channel', 'List Channels','Refresh']
-    if args:
-        menuItems=(args[0])
-    dialog = xbmcgui.Dialog()
-    ret = dialog.select(addonname, menuItems)
-    if ret == -1 or ret == None:
-        xbmc.executebuiltin("Action(Back)")
-        xbmc.executebuiltin("Action(Back)")
-    elif menuItems[ret] == 'Add Channel':
-        query=__ask('','Search for a channel')
-        if query:
-            LOCAL_CONF['update'] = False
-            __search(query)
-    elif menuItems[ret] == 'List Channels':
-        __folders()
-    elif menuItems[ret] == 'Refresh':
-        LOCAL_CONF['update'] = False
-        __refresh()
 
+def __C_MENU(C_ID):
+    menuItems=['Refresh','Delete']
+    ret = xbmcgui.Dialog().select('Manage: '+CONFIG['channels'][C_ID]['channel_name'], menuItems)
+    if menuItems[ret] == 'Refresh':
+        __add_channel(C_ID)
+    elif menuItems[ret] == 'Delete':
+        cname=CONFIG['channels'][C_ID]['channel_name']
+        cdir = CHANNELS+'\\'+re.sub(r'[^\w\s]', '', cname)
+        __logger(cdir)
+        ret = xbmcgui.Dialog().yesno('Delete: '+cname, 'Are you sure you wish to remove "'+cname+'"?')
+        if ret:
+            CONFIG['channels'].pop(C_ID)
+            __save()
+            ret = xbmcgui.Dialog().yesno('Delete: '+cname, 'Remove "'+cname+'" also from the library?')
+            if ret:
+                shutil.rmtree(cdir)
+                xbmc.executebuiltin("CleanLibrary(video)")
+                pass
 
 __start_up()
+
 try:
     mode = sys.argv[2][1:].split(u'mode')[1][1:]
 except IndexError:
@@ -420,13 +491,27 @@ try:
 except IndexError:
     foldername = None
 
-__logger(mode)
+
+
 if mode is None:
-    __menu()
+    __folders('menu')
 elif mode == 'AddItem':
     __add_channel(foldername)
-elif 'Refresh' in mode:
+elif mode == 'ManageItem':
+    if foldername == 'Add_Channel':
+        query=__ask('','Search for a channel')
+        if query:
+            LOCAL_CONF['update'] = False
+            
+            __search(query)
+    elif foldername == 'Manage':
+        __folders('Manage')
+    elif foldername == 'Refresh_all':
+        __print('refresh')
+        LOCAL_CONF['update'] = False
+        __refresh()
+elif mode == 'C_MENU':
+    __C_MENU(foldername)
+    
+elif mode == 'Refresh':
     __refresh()
-#
-
-#__logger(args)
