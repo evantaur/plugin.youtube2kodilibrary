@@ -2,7 +2,8 @@
 <settings>
     <category label="Default">
         <setting label="Youtube API key" type="text"   id="API_key" default=""/>
-        <setting label="Scan for new content daily" type="bool"   id="auto_refresh" default="true"/>
-        <setting label="Start library scan after adding a channel" type="bool"   id="refresh_after_add" default="true"/>
+        <setting label="Scan for new content every" type="bool"   id="auto_refresh" default="true"/>
+        <setting label="Hours" type="slider" id="update_interval" default="12" range="6,2,168" option="int" />
+        <setting label="Start library scan after adding a channel" type="bool"   id="refresh_after_add" default="true"/>    
     </category>
 </settings>
