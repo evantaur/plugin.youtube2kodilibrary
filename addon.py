@@ -82,9 +82,6 @@ def __check_key_validity(key):
 
 
 def __add_channel(channel_id,refresh=None):
-    if refresh:
-        __logger('refresh found')
-        raise SystemExit()
     data = {}
     channel_url = "https://www.googleapis.com/youtube/v3/channels?part=brandingSettings,contentDetails,contentOwnerDetails,id,localizations,snippet,statistics,status,topicDetails&id="+channel_id+"&key="+addon.getSetting('API_key')
     req = requests.get(channel_url)
@@ -138,13 +135,10 @@ def __add_channel(channel_id,refresh=None):
     file.write(output)
     file.close()
     __save()
-    if 'last_page' in CONFIG['channels'][channel_id]:
-        __parse_uploads(uploads,CONFIG['channels'][channel_id]['last_page'])
-    else:
-        __parse_uploads(uploads,None)
+    __parse_uploads(True,uploads,None)
 
-def __parse_uploads(playlist_id, page_token=None, update=False):
-    if page_token:
+def __parse_uploads(fullscan, playlist_id, page_token=None, update=False):
+    if page_token and fullscan:
         url = "https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50&playlistId="+playlist_id+"&pageToken="+page_token+"&key="+addon.getSetting('API_key')
     else:
         url = "https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50&playlistId="+playlist_id+"&key="+addon.getSetting('API_key')
@@ -173,9 +167,9 @@ def __parse_uploads(playlist_id, page_token=None, update=False):
             PDIALOG.update(int(100 * len(VIDEOS) / totalResults), 'Downloading info: ' + str(len(VIDEOS)) + '/' + str(totalResults) )
         vid.append(item['snippet']['resourceId']['videoId'])
     __get_video_details(vid)
-    if reply.get('nextPageToken'):
+    if reply.get('nextPageToken') and fullscan:
         CONFIG['channels'][reply['items'][0]['snippet']['channelId']]['last_page'] = reply['nextPageToken']
-        __parse_uploads(playlist_id, reply['nextPageToken'])
+        __parse_uploads(True, playlist_id, reply['nextPageToken'])
     else:
         __render()
 
@@ -386,10 +380,7 @@ def __refresh():
         VIDEOS.clear()
         VIDEO_DURATION.clear()
         LOCAL_CONF['update'] = True
-        if 'last_page' in CONFIG['channels'][items]:
-            __parse_uploads(CONFIG['channels'][items]['playlist_id'],CONFIG['channels'][items]['last_page'],update=True)
-        else:
-            __parse_uploads(CONFIG['channels'][items]['playlist_id'],None, update=True)
+        __parse_uploads(False,CONFIG['channels'][items]['playlist_id'],None, update=True)
     CONFIG['last_scan'] = int(time.time())
     __save()
     xbmcgui.Dialog().notification(addonname, 'Update finished', xbmcgui.NOTIFICATION_INFO, 5000)
@@ -510,7 +501,6 @@ elif mode == 'ManageItem':
     elif foldername == 'Manage':
         __folders('Manage')
     elif foldername == 'Refresh_all':
-        __print('refresh')
         LOCAL_CONF['update'] = False
         __refresh()
 elif mode == 'C_MENU':
