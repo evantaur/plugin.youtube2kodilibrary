@@ -403,7 +403,7 @@ def __refresh():
             del VIDEOS[:]
             VIDEO_DURATION = {}
         LOCAL_CONF['update'] = True
-        __parse_uploads(false,CONFIG['channels'][items]['playlist_id'],None, update=True)
+        __parse_uploads(False,CONFIG['channels'][items]['playlist_id'],None, update=True)
     CONFIG['last_scan'] = int(time.time())
     __save()
     xbmcgui.Dialog().notification(addonname, 'Update finished', xbmcgui.NOTIFICATION_INFO, 5000)
