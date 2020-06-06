@@ -559,7 +559,7 @@ def __refresh():
     for items in CONFIG['channels']:
         try:
             VIDEOS.clear()
-            VIDEO_DURATION.clear()
+            VIDEO_DURATION = {}
         except AttributeError:
             del VIDEOS[:]
             VIDEO_DURATION = {}            
