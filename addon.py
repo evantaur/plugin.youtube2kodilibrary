@@ -1,76 +1,102 @@
-u""" 
+""" 
 YOUTUBE CHANNELS TO KODI
 """
 from __future__ import division
 from __future__ import with_statement
 from __future__ import absolute_import
 import sys
+PY_V=sys.version_info[0]
 import json
 import datetime
+import time
 import re
 import requests
 import urllib
-import time
 from urlparse import urlparse
-#from pathlib import Path
 import xbmc
+import xbmcvfs
 import xbmcaddon
 import xbmcgui
 import xbmcplugin
-import xbmcvfs
 import codecs
 import shutil
-from io import open
- 
-
-def __logger(a):
-    xbmc.log(unicode(a),level=xbmc.LOGNOTICE)
-
-
+import math
 
 addon       = xbmcaddon.Addon()
-addonname   = addon.getAddonInfo(u'name')
-addonID       = addon.getAddonInfo(u'id')
-addon_path = xbmc.translatePath(u"special://profile/addon_data/"+addonID)
+addonname   = addon.getAddonInfo('name')
+addonID       = addon.getAddonInfo('id')
 addon_resources = addon.getAddonInfo("path") + '/resources/'
+addon_path = xbmc.translatePath("special://profile/addon_data/"+addonID)
 base_url = sys.argv[0]
 addon_handle = int(sys.argv[1])
-args = str(sys.argv[2][1:])
+
+if PY_V >= 3:                           #Python 3
+    args = urllib.parse.parse_qs(sys.argv[2][1:])
+else:                                   #Python 2
+    args = str(sys.argv[2][1:])
+
          
 
 
-HOME = xbmc.translatePath(u"special://profile/library/")
+HOME = xbmc.translatePath("special://profile/library/")
 YOUTUBE_DIR = HOME
-CHANNELS = YOUTUBE_DIR+u'series'
-MOVIES = YOUTUBE_DIR+u'movies'
-MUSIC_VIDEOS = YOUTUBE_DIR+u'music_videos'
+CHANNELS = YOUTUBE_DIR+'series'
+MOVIES = YOUTUBE_DIR+'movies'
+MUSIC_VIDEOS = YOUTUBE_DIR+'music_videos'
 VIDEOS = []
 VIDEO_DURATION = {}
 PDIALOG = xbmcgui.DialogProgress()
-LOCAL_CONF = {u'update':False}
+LOCAL_CONF = {'update':False}
 
 def __build_url(query):
-    return base_url + u'?' + urllib.urlencode(query)
+    if PY_V >= 3:                       #Python 3
+        return base_url + '?' + urllib.parse.urlencode(query)
+    else:                               #Python 2
+        return base_url + u'?' + urllib.urlencode(query)
+
+def convert(n,*args):
+    if 'text' in args:
+        returntime = time.strftime('%H %M', time.gmtime(n)).split(' ')
+        if returntime[0] == '00':
+            return returntime[1] + ' Minutes'
+        return  returntime[0] + ' Hours ' + returntime[1] + ' Minutes'
+    return str(time.strftime('%H:%M:%S', time.gmtime(n))) 
+
+def __get_token_reset():
+    now = datetime.datetime.utcnow() - datetime.timedelta(hours=7)
+    reset = now.replace(hour=0, minute=0, second=0, microsecond=0) + datetime.timedelta(days=1)
+    seconds = (reset - now).seconds
+    return seconds
 
 CONFIG={}
 
-
-config_file=addon_path+'\\config.json'
+config_file=addon_path+'\\config.json'       
 if xbmcvfs.exists(config_file):
-    with open(config_file, mode='rb') as f:
-        CONFIG = json.load(f)
+    if PY_V >= 3:
+        with xbmcvfs.File(config_file) as f:     # PYTHON 3 v19+
+            CONFIG = json.load(f)                #
+    else:
+        f = xbmcvfs.File(config_file)            # PYTHON 2 v18+
+        CONFIG = json.loads(f.read())
+        f.close()
 else:
-    CONFIG[u'channels'] = {}
-    CONFIG[u'movies'] = {}
-    CONFIG[u'music_videos'] = {}
+    CONFIG = {}
+    CONFIG['channels'] = {}
+    CONFIG['movies'] = {}
+    CONFIG['music_videos'] = {}
 
 
 
 def __save():
-    write_dump=unicode(json.dumps(CONFIG, sort_keys=True, indent=4, separators=(',', ': ')))
-    with open(addon_path+'//config.json', mode='w', encoding='UTF-8', errors='strict', buffering=1) as file:
-        file.write(write_dump)
-        file.close()
+    dump = json.dumps(CONFIG, sort_keys=True, indent=4, separators=(',', ': '))
+    if PY_V >= 3:                                #Python 3
+        with open(addon_path+'//config.json', mode='w', encoding='UTF-8', errors='strict', buffering=1) as file:
+            file.write(json.dumps(CONFIG, sort_keys=True, indent=4, separators=(',', ': ')))
+            file.close()
+    else:
+        f = xbmcvfs.File(config_file, 'w')       #Python 2
+        result = f.write(dump)                   #
+        f.close()         
 
 def __print(what):
     xbmcgui.Dialog().ok(addonname, what)
@@ -81,46 +107,100 @@ def __ask(name, *args):
     if args:
         header = args[0]
     else:
-        header = u""
+        header = ""
 
-    kb = xbmc.Keyboard(u'default', header, True)
+    kb = xbmc.Keyboard('default', header, True)
     kb.setDefault(name)
     kb.setHiddenInput(False)
     kb.doModal()
     return(kb.getText())
   
-
-
 def __check_key_validity(key):
-    req = requests.get(u"https://www.googleapis.com/youtube/v3/channels?part=snippet&id=UCS5tt2z_DFvG7-39J3aE-bQ&key="+key)
+    req = requests.get("https://www.googleapis.com/youtube/v3/channels?part=snippet&id=UCS5tt2z_DFvG7-39J3aE-bQ&key="+key)
     if req.status_code == 200:
-        return u'valid'
-    return u'invalid'
+        return 'valid'
+    return 'invalid'
 
 
-def __add_channel(channel_id):
-    data = {}
-    channel_url = u"https://www.googleapis.com/youtube/v3/channels?part=brandingSettings,contentDetails,contentOwnerDetails,id,localizations,snippet,statistics,status,topicDetails&id="+channel_id+u"&key="+addon.getSetting(u'API_key')
-    req = requests.get(channel_url)
-    reply = json.loads(req.content)
-    if u'items' not in reply:
-        raise SystemExit(u"no such channel")
-    data[u'channel_id'] = channel_id
-    data[u'title'] = reply[u'items'][0][u'brandingSettings'][u'channel'][u'title']
-    if u'description' in reply[u'items'][0][u'brandingSettings'][u'channel']:
-        data[u'plot'] = reply[u'items'][0][u'brandingSettings'][u'channel'][u'description']
+#if cache then cache, else use live...
+def c_download(req):
+    url = req.replace("&key="+addon.getSetting('API_key'),'').split('?')
+    url[1] = url[1]
+    handle=url[0].split('/')[-1]
+    cache_file=addon_path + '/cache/' + handle + '/' + url[1]
+    if addon.getSetting('use_cache') == 'true':
+        xbmcvfs.mkdirs(addon_path + '/cache/' + handle +'/')
+        if xbmcvfs.exists(cache_file[:250]):
+            if PY_V >= 3:                                # Python 3 v19+
+                with open(cache_file[:250], 'r') as f:   # (READ)
+                    return json.load(f)                  #
+            else:
+                f = xbmcvfs.File(cache_file[:250])       # PYTHON 2 v18+
+                ret_json = json.loads(f.read())          # (READ)
+                f.close()                                # 
+                return ret_json                          #
+        else:
+            requrl = requests.get(req)
+            reply = json.loads(requrl.content)
+            if PY_V >= 3:                                # Python 3
+                with open(cache_file[:250], mode='w', encoding='UTF-8', errors='strict', buffering=1) as file:
+                    file.write(json.dumps(reply))        #
+                    file.close()                         #
+                return reply                             #
+            else:
+                f = xbmcvfs.File(cache_file[:250], 'w')  #Python 2
+                result = f.write(json.dumps(reply))      #
+                f.close()                                #
+                return reply                             #
+
     else:
-        data[u'plot'] = data[u'title']
-    
-    data[u'aired'] = reply[u'items'][0][u'snippet'][u'publishedAt']
-    data[u'thumb'] = reply[u'items'][0][u'snippet'][u'thumbnails'][u'high'][u'url']
-    data[u'banner'] = reply[u'items'][0][u'brandingSettings'][u'image'][u'bannerImageUrl']
-    data[u'fanart'] = reply[u'items'][0][u'brandingSettings'][u'image'][u'bannerTvHighImageUrl']
-    uploads = reply[u'items'][0][u'contentDetails'][u'relatedPlaylists'][u'uploads']
-    data[u'uploader_stripped'] = re.sub(ur'[^\w\s]', u'', data[u'title']).replace(u" ", u"_")
-    xbmcvfs.mkdirs(CHANNELS+u'\\'+re.sub(ur'[^\w\s]', u'', data[u'title']))
-    if channel_id not in CONFIG[u'channels']:
-        CONFIG[u'channels'][channel_id] = {}
+        requrl = requests.get(req)
+        reply = json.loads(requrl.content)
+        return reply
+
+
+
+
+def __add_channel(channel_id,refresh=None):
+    data = {}
+    channel_url = "https://www.googleapis.com/youtube/v3/channels?part=brandingSettings,contentDetails,contentOwnerDetails,id,localizations,snippet,statistics,status,topicDetails&id="+channel_id+"&key="+addon.getSetting('API_key')
+    reply = c_download(channel_url)
+    try:
+        if 'error' in reply:
+            e_reason=reply['error']['errors'][0]['reason']
+            e_message=reply['error']['errors'][0]['message']
+            if e_reason == 'quotaExceeded':
+                e_message = "The request cannot be completed because you have exceeded your quota."
+            xbmcgui.Dialog().notification(addonname, e_message, addon_resources+'/icon.png', 10000)
+            __logger(e_message)
+            if len(VIDEOS) >= 1:
+                __render()
+            raise SystemExit(" error: quota exceeded")
+    except NameError:
+        pass    
+    if 'items' not in reply:
+        return "no such channel"
+    data['channel_id'] = channel_id
+    data['title'] = reply['items'][0]['brandingSettings']['channel']['title']
+    if 'description' in reply['items'][0]['brandingSettings']['channel']:
+        data['plot'] = reply['items'][0]['brandingSettings']['channel']['description']
+    else:
+        data['plot'] = data['title']
+    data['aired'] = reply['items'][0]['snippet']['publishedAt']
+    if 'high' in reply['items'][0]['snippet']['thumbnails']:
+        data['thumb'] = reply['items'][0]['snippet']['thumbnails']['high']['url']
+    else:
+        data['thumb'] = reply['items'][0]['snippet']['thumbnails']['default']['url']
+    data['banner'] = reply['items'][0]['brandingSettings']['image']['bannerImageUrl']
+    if 'bannerTvHighImageUrl' in reply['items'][0]['brandingSettings']['image']:
+        data['fanart'] = reply['items'][0]['brandingSettings']['image']['bannerTvHighImageUrl']
+    else:
+        data['fanart'] = reply['items'][0]['brandingSettings']['image']['bannerImageUrl']
+    uploads = reply['items'][0]['contentDetails']['relatedPlaylists']['uploads']
+    data['uploader_stripped'] = re.sub(r'[^\w\s]', '', data['title']).replace(" ", "_")
+    xbmcvfs.mkdirs(CHANNELS+'\\'+re.sub(r'[^\w\s]', '', data['title']))
+    if channel_id not in CONFIG['channels']:
+        CONFIG['channels'][channel_id] = {}
     CONFIG['channels'][channel_id]['channel_name'] = data['title']
     CONFIG['channels'][channel_id]['channel_type'] = 'series' #temporarily until music videos and movies are implemented
     CONFIG['channels'][channel_id]['branding'] = {}
@@ -128,7 +208,7 @@ def __add_channel(channel_id):
     CONFIG['channels'][channel_id]['branding']['fanart'] = data['fanart']
     CONFIG['channels'][channel_id]['branding']['banner'] = data['banner']
     CONFIG['channels'][channel_id]['branding']['description'] = data['plot']
-    CONFIG['channels'][channel_id]['playlist_id'] = uploads    
+    CONFIG['channels'][channel_id]['playlist_id'] = uploads
     output = u"""
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n
     <tvshow>
@@ -148,92 +228,131 @@ def __add_channel(channel_id):
             <tag>Youtube</tag>
     </tvshow>
     """.format(**data)
-    tvshow_file = CHANNELS+'\\'+ re.sub(ur'[^\w\s]', '', data['title']) + '\\'+'tvshow.nfo'
-    file = open(tvshow_file, 'w', encoding="utf-8")
-    file.write(output)
-    file.close()
+    tvshow_file = CHANNELS+'\\'+ re.sub(r'[^\w\s]', '', data['title']) + '\\'+'tvshow.nfo'
+    if PY_V >= 3:
+        file = open(tvshow_file, 'w', encoding="utf-8")       # Python 3
+        file.write(output)
+        file.close()
+    else:
+        f = xbmcvfs.File(tvshow_file, 'w')                    # Python 2
+        result = f.write(bytearray(output.encode('utf-8')))   #
+        f.close()  
     __save()
     __parse_uploads(True,uploads,None)
 
-def __parse_uploads(fullscan,playlist_id, page_token=None, update=False):
-    __logger('get:' + playlist_id)
-    if page_token and fullscan:
-        url = u"https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50&playlistId="+playlist_id+u"&pageToken="+page_token+u"&key="+addon.getSetting(u'API_key')
-    else:
-        url = u"https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50&playlistId="+playlist_id+u"&key="+addon.getSetting(u'API_key')
-    req = requests.get(url)
-    reply = json.loads(req.content)
-    try:
-        if 'error' in reply:
-            e_reason=reply['error']['errors'][0]['reason']
-            e_message=reply['error']['errors'][0]['message']
-            if e_reason == 'quotaExceeded':
-                e_message = "The request cannot be completed because you have exceeded your quota."
-            xbmcgui.Dialog().notification(addonname, e_message, xbmcgui.NOTIFICATION_ERROR, 10000)
-            __logger(e_message)
-            if len(VIDEOS) >= 1:
-                __render()
-            raise SystemExit(" error: quota exceeded")
-    except NameError:
-        pass    
-    vid = []
-    totalResults=int(reply[u'pageInfo'][u'totalResults'])
-    if LOCAL_CONF[u'update'] == False:
-        PDIALOG.create(u'Fetching channel info', u'Please wait...')        
-    for item in reply[u'items']:
-        VIDEOS.append(item)
-        if LOCAL_CONF[u'update'] == False:
-            PDIALOG.update(int(100 * len(VIDEOS) / totalResults), u'Downloading info: ' + unicode(len(VIDEOS)) + u'/' + unicode(totalResults) )
-        vid.append(item[u'snippet'][u'resourceId'][u'videoId'])
-    __get_video_details(vid)
-    if reply.get(u'nextPageToken') and fullscan:
-       __parse_uploads(True,playlist_id, reply[u'nextPageToken'])
-    else:
-        __render()
+
+PARSER = {'items' : 0,'total' : 0,'total_steps':0,'steps':0,'scan_year' : 0}
+def __parse_uploads(fullscan, playlist_id, page_token=None, update=False):
+    __logger('Getting info for playlist: ' + playlist_id)
+    url = "https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50&playlistId="+playlist_id+"&key="+addon.getSetting('API_key')
+    reply = c_download(url)
+    last_video_id='Nevergonnagiveyouup'
+    while True:
+        reply = c_download(url)
+        vid = []
+        try:
+            if 'error' in reply:
+                e_reason=reply['error']['errors'][0]['reason']
+                e_message=reply['error']['errors'][0]['message']
+                if e_reason == 'quotaExceeded':
+                    e_message = "The request cannot be completed because you have exceeded your quota."
+                xbmcgui.Dialog().notification(addonname, e_message, addon_resources+'/media/notify/error.png', 10000)
+                __logger(e_message)
+                if len(VIDEOS) >= 1:
+                    __render()
+                break
+        except NameError:
+            pass
+        totalResults=int(reply['pageInfo']['totalResults'])
+        if addon.getSetting('toggle_import_limit') == 'true':
+            totalResults = min(int(reply['pageInfo']['totalResults']),int(addon.getSetting('import_limit')))
+        if (PARSER['total_steps'] == 0):
+            PARSER['total_steps'] = int(totalResults * 4)
+        PARSER['total'] = totalResults
+        if PARSER['steps'] < 1 and LOCAL_CONF['update'] == False:
+            PDIALOG.create('Fetching channel info', 'Please wait...')
+        try:
+            if 'last_video' in CONFIG['channels'][reply['items'][0]['snippet']['channelId']]:
+                last_video_id = CONFIG['channels'][reply['items'][0]['snippet']['channelId']]['last_video']['video_id']
+        except KeyError:
+            pass
+            __logger('no previous scan found')
+        for item in reply['items']:
+            if LOCAL_CONF['update'] == False and PDIALOG.iscanceled(): 
+                return
+            season = int(item['snippet']['publishedAt'].split('T')[0].split('-')[0])                
+            VIDEOS.append(item)
+            PARSER['items'] += 1
+            PARSER['steps'] += 1
+            if item['snippet']['resourceId']['videoId'] == last_video_id:
+                break
+            vid.append(item['snippet']['resourceId']['videoId'])
+            if LOCAL_CONF['update'] == False:
+                # There seems to be a problem with \n and progress dialog in leia
+                # so let's not use it in leia....
+                if PY_V > 3:
+                    dialog_string='Downloading info: ' + str(PARSER['items']) + '/' + str(PARSER['total']) + '\nYEAR: ' + str(season)
+                else:
+                    dialog_string='Downloading info: ' + str(PARSER['items']) + '/' + str(PARSER['total']) + '      YEAR: ' + str(season)
+                PDIALOG.update(int(100 * PARSER['steps'] / PARSER['total_steps']), dialog_string)
+        __get_video_details(vid)
+        if 'nextPageToken' not in reply or not fullscan or PARSER['items'] >= PARSER['total']:
+            break
+        page_token = reply['nextPageToken']
+        url = "https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50&playlistId="+playlist_id+"&pageToken="+page_token+"&key="+addon.getSetting('API_key')
+
+        #if reply.get('nextPageToken') and fullscan:
+        #    CONFIG['channels'][reply['items'][0]['snippet']['channelId']]['last_page'] = reply['nextPageToken']
+        #    __parse_uploads(True, playlist_id, reply['nextPageToken'])
+    if len(VIDEOS) > 0:
+        __render()    
+
+
 
 
 def __get_video_details(array):
-    get = u','.join(array)
-    url = u"https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id="+get+u"&key="+addon.getSetting(u'API_key')
-    req = requests.get(url)
-    reply = json.loads(req.content)
-    try:
-        if 'error' in reply:
-            e_reason=reply['error']['errors'][0]['reason']
-            e_message=reply['error']['errors'][0]['message']
-            if e_reason == 'quotaExceeded':
-                e_message = "The request cannot be completed because you have exceeded your quota."
-            xbmcgui.Dialog().notification(addonname, e_message, xbmcgui.NOTIFICATION_ERROR, 10000)
-            __logger(e_message)
-            if len(VIDEOS) >= 1:
-                __render()
-            raise SystemExit(" error: quota exceeded")
-    except NameError:
-        pass     
-    for item in reply[u'items']:
-        VIDEO_DURATION[item[u'id']] = str(__yt_duration(item[u'contentDetails'][u'duration']))
-
+    x = [array[i:i + 50] for i in range(0, len(array), 50)]
+    for stacks in x:
+        get = ','.join(stacks)
+        url = "https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id="+get+"&key="+addon.getSetting('API_key')
+        reply = c_download(url)
+        try:
+            if 'error' in reply:
+                e_reason=reply['error']['errors'][0]['reason']
+                e_message=reply['error']['errors'][0]['message']
+                if e_reason == 'quotaExceeded':
+                    e_message = "The request cannot be completed because you have exceeded your quota."
+                xbmcgui.Dialog().notification(addonname, e_message, addon_resources+'/icon.png', 10000)
+                __logger(e_message)
+                if len(VIDEOS) >= 1:
+                    __render()
+                raise SystemExit(" error: quota exceeded")
+        except NameError:
+            pass    
+        for item in reply['items']:
+            #stick = { item['id'] : __yt_duration(item['contentDetails']['duration']) }
+            VIDEO_DURATION[item['id']] = __yt_duration(item['contentDetails']['duration'])
+            PARSER['steps'] += 1
 
 def __yt_duration(in_time):
-    duration = 0
-    time = in_time.split(u"PT")[1]
-    if u'H' in time and u'M' in time and u'S' in time:
-        duration = int(time.split(u"H")[0])*60 + int(time.split(u"H")[1].split(u"M")[0])
-    elif u'H' in time and u'M' in time:
-        duration = int(time.split(u"H")[0])*60 + int(time.split(u"H")[1].split(u"M")[0])
-    elif u'H' in time and u'S' in time:
-        duration = int(time.split(u"H")[0])*60
-    elif u'M' in time and u'S' in time:
-        duration = int(time.split(u"M")[0])
-    else:
-        duration = 0
+    duration = 1
+    time = in_time.split("PT")[1]
+    if 'H' in time and 'M' in time and 'S' in time:
+        duration = int(time.split("H")[0])*60 + int(time.split("H")[1].split("M")[0])
+    elif 'H' in time and 'M' in time:
+        duration = int(time.split("H")[0])*60 + int(time.split("H")[1].split("M")[0])
+    elif 'H' in time and 'S' in time:
+        duration = int(time.split("H")[0])*60
+    elif 'M' in time and 'S' in time:
+        duration = int(time.split("M")[0])
     return str(duration)
+
 
 def __check_if_youtube_addon_has_api_key():
     try:
         yt_api_key = xbmcaddon.Addon('plugin.video.youtube').getSetting('youtube.api.key')
         if yt_api_key:
-            ret = xbmcgui.Dialog().yesno(addonname, u'would you like to use the same API key you have set on YouTube addon?')
+            ret = xbmcgui.Dialog().yesno(addonname, 'would you like to use the same API key you have set on YouTube addon?')
             if ret:
                 return yt_api_key
     except RuntimeError:
@@ -241,29 +360,29 @@ def __check_if_youtube_addon_has_api_key():
 
 
 def __start_up():
-    #__logger(CONFIG)
-    __save()
-    API_KEY = addon.getSetting(u'API_key')
-    if API_KEY == u"":
+    API_KEY = addon.getSetting('API_key')
+    if API_KEY == "":
         ciyapi=__check_if_youtube_addon_has_api_key()
         if ciyapi != None:
             API_KEY=ciyapi
         else:
-            __print(u"""
+            __print("""
 You\'ll need to aquire YouTube API key for this addon to work.
 for instructions see: https://developers.google.com/youtube/v3/getting-started
 """)
-            API_KEY=__ask(u'',u'API key')
-        if API_KEY != u"":
-            if __check_key_validity(API_KEY) == u'valid':
-                addon.setSetting(u'API_key',API_KEY)
-                __print(u'Key is valid, thank you!')
+            API_KEY=__ask('','API key')
+        if API_KEY != "":
+            if __check_key_validity(API_KEY) == 'valid':
+                addon.setSetting('API_key',API_KEY)
+                __print('Key is valid, thank you!')
             else:
-                __print(u'Key is invalid')
-                raise SystemExit(u" error")
+                __print('Key is invalid')
+                raise SystemExit(" error")
         else:
-            __print(u'Nothing given')
+            __print('Nothing given')
             raise SystemExit
+    newlimit = int(math.ceil(int(addon.getSetting('import_limit')) / 100.0)) * 100
+    addon.setSetting('import_limit',str(newlimit))
     
 
 
@@ -272,56 +391,80 @@ addon_handle = int(sys.argv[1])
 SEARCH_QUERY={}
 def __search(query):
     SEARCH_QUERY.clear()
-    channel_url = u"https://www.googleapis.com/youtube/v3/search?type=channel&part=id,snippet&maxResults=50&q="+query+u"&key="+addon.getSetting(u'API_key')
-    req = requests.get(channel_url)
-    reply = json.loads(req.content)
+    channel_url = "https://www.googleapis.com/youtube/v3/search?type=channel&part=id,snippet&maxResults=50&q="+query+"&key="+addon.getSetting('API_key')
+    #req = requests.get(channel_url)
+    #reply = json.loads(req.content)
+    reply = c_download(channel_url)
     try:
         if 'error' in reply:
             e_reason=reply['error']['errors'][0]['reason']
             e_message=reply['error']['errors'][0]['message']
             if e_reason == 'quotaExceeded':
-                e_message = "The request cannot be completed because you have exceeded your quota."
+                e_message = "The request cannot be completed because you have exceeded your quota.Quota resets in :\n\n"+ convert(__get_token_reset(),'text')
             __print(e_message)
             raise SystemExit(" error")
     except NameError:
-        pass        
-    if not u'items' in reply:
-        __print(u'No such channel')
-        raise SystemExit(u" error")
+        pass    
+    if not 'items' in reply:
+        __print('No such channel')
+        raise SystemExit(" error")
     ###########################
-    # No idea why the first(0) item not showing on results, hack till i do
+    # No idea why the first(0) item not always showing on results, hack till i do
     ###########################
-    SEARCH_QUERY[reply[u'items'][0][u'snippet'][u'title']+u' '] = {}
-    SEARCH_QUERY[reply[u'items'][0][u'snippet'][u'title']+u' '][u'id'] = reply[u'items'][0][u'snippet'][u'channelId']
-    SEARCH_QUERY[reply[u'items'][0][u'snippet'][u'title']+u' '][u'description'] = reply[u'items'][0][u'snippet'][u'description']
-    SEARCH_QUERY[reply[u'items'][0][u'snippet'][u'title']+u' '][u'thumbnail'] = reply[u'items'][0][u'snippet'][u'thumbnails'][u'high'][u'url']
-    for item in reply[u'items']:
-    #    __logger(unicode(item))
-        SEARCH_QUERY[item[u'snippet'][u'title']] = {}
-        SEARCH_QUERY[item[u'snippet'][u'title']][u'id'] = item[u'snippet'][u'channelId']
-        SEARCH_QUERY[item[u'snippet'][u'title']][u'description'] = item[u'snippet'][u'description']
-        SEARCH_QUERY[item[u'snippet'][u'title']][u'thumbnail'] = item[u'snippet'][u'thumbnails'][u'high'][u'url']
+    SEARCH_QUERY[reply['items'][0]['snippet']['title']+' '] = {}
+    SEARCH_QUERY[reply['items'][0]['snippet']['title']+' ']['id'] = reply['items'][0]['snippet']['channelId']
+    SEARCH_QUERY[reply['items'][0]['snippet']['title']+' ']['description'] = reply['items'][0]['snippet']['description']
+    SEARCH_QUERY[reply['items'][0]['snippet']['title']+' ']['thumbnail'] = reply['items'][0]['snippet']['thumbnails']['high']['url']
+    for item in reply['items']:
+        SEARCH_QUERY[item['snippet']['title']] = {}
+        SEARCH_QUERY[item['snippet']['title']]['id'] = item['snippet']['channelId']
+        SEARCH_QUERY[item['snippet']['title']]['description'] = item['snippet']['description']
+        SEARCH_QUERY[item['snippet']['title']]['thumbnail'] = item['snippet']['thumbnails']['high']['url']
     __folders('search')
 
 
+def __FormatTVshowNFO(**args):
+    out="""
+<episodedetails>
+    <title>{title}</title>
+    <season>{season}</season>
+    <episode>{episode}</episode>
+    <plot>{plot}</plot>
+    <aired>{aired}</aired>
+    <studio>{author}</studio>
+    <credits>{author}</credits>
+    <director>{author}</director>
+    <thumb>{thumb}</thumb>
+    <runtime>video_duration</runtime>
+    <fileinfo>
+        <streamdetails>
+        <durationinseconds>video_duration</durationinseconds>
+        </streamdetails>
+    </fileinfo>
+</episodedetails>
+""".format(**args)    
+#####################
+# MR DEBUG O'Matic  ##
+#################################################
+#        xbmc.log(unicode(output),level=xbmc.LOGNOTICE)
+#        raise SystemExit(" error")
+#################################################
 
-
-
-def __render():
+def __render(render_style='Full'):
     if len(VIDEOS) <= 0:
-        raise SystemExit()
+        return
     if LOCAL_CONF['update'] == False:
         PDIALOG.create('Importing channel', 'Please wait...')
     year = 0
     episode = 0
-    VIDEOS.reverse()
     l_count=0
     channelId=VIDEOS[0]['snippet']['channelId']
+    VIDEOS.reverse()
     if 'last_video' in CONFIG['channels'][VIDEOS[0]['snippet']['channelId']]:
-        year = int(CONFIG['channels'][VIDEOS[0]['snippet']['channelId']]['last_video']['season'])
-        episode = int(CONFIG['channels'][VIDEOS[0]['snippet']['channelId']]['last_video']['episode'])
-        latest_aired = int(CONFIG['channels'][VIDEOS[0]['snippet']['channelId']]['last_video']['aired'])
-        last_video_id = CONFIG['channels'][VIDEOS[0]['snippet']['channelId']]['last_video']['video_id']
+            year = int(CONFIG['channels'][VIDEOS[0]['snippet']['channelId']]['last_video']['season'])
+            episode = int(CONFIG['channels'][VIDEOS[0]['snippet']['channelId']]['last_video']['episode'])
+            latest_aired = int(CONFIG['channels'][VIDEOS[0]['snippet']['channelId']]['last_video']['aired'])
+            last_video_id = CONFIG['channels'][VIDEOS[0]['snippet']['channelId']]['last_video']['video_id']
     for item in VIDEOS:
         data = {}
         data['video_id'] = item['snippet']['resourceId']['videoId']
@@ -332,8 +475,10 @@ def __render():
         aired_timestamp = int((aired_datetime - datetime.datetime(1970,1,1)).total_seconds())
         try:
             if latest_aired > aired_timestamp or last_video_id == data['video_id']:
+                PARSER['steps'] += 2
                 continue
         except NameError:
+            __logger('name error')
             pass
         data['author'] = item['snippet']['channelTitle']
         data['channelId'] = item['snippet']['channelId']
@@ -344,7 +489,7 @@ def __render():
             year = season
             season = year
             episode = 0
-        data['video_duration'] = '%s' %(VIDEO_DURATION[data['video_id']])
+        data['video_duration'] = VIDEO_DURATION[data['video_id']]
         if 'maxres' in item['snippet']['thumbnails']:
             data['thumb'] = item['snippet']['thumbnails']['maxres']['url']
         elif item['snippet']['thumbnails']['high']:
@@ -358,7 +503,7 @@ def __render():
         data['season'] = season
         l_count += 1
         if LOCAL_CONF['update'] == False:
-            PDIALOG.update(int(100 * l_count / len(VIDEOS)), data['title'] )
+            PDIALOG.update(int(100 * PARSER['steps'] / PARSER['total_steps']), data['title'] )
         xbmcvfs.mkdirs(CHANNELS+'\\'+re.sub(r'[^\w\s]', '', data['author'])+'\\'+str(data['season']))
         output = u"""
 <episodedetails>
@@ -381,38 +526,54 @@ def __render():
 """.format(**data)
         file_location = CHANNELS+'\\'+re.sub(r'[^\w\s]', '', data['author'])+'\\'+str(data['season']) + '\\s' + str(data['season']) +'e' + str(data['episode'])
         write_file = file_location+'.nfo'
-        file = open(write_file, 'w', encoding="utf-8")
-        file.write(output)
-        file.close()
+        if PY_V >= 3:
+            file = open(write_file, 'w', encoding="utf-8") #Python 3
+            file.write(output)
+            file.close()
+        else:
+            f = xbmcvfs.File(write_file, 'w') 
+            f.write(bytearray(output.encode('utf-8')))
+            f.close()   
+        PARSER['steps'] += 1
+        if LOCAL_CONF['update'] == False:
+            PDIALOG.update(int(100 * PARSER['steps'] / PARSER['total_steps']), data['title'] )        
         write_file = file_location+'.strm'
-        file = open(write_file, 'w', encoding="utf-8")
-        file.write('plugin://plugin.video.youtube/play/?video_id='+data['video_id'])
-        file.close()
+        if PY_V >= 3:
+            file = open(write_file, 'w', encoding="utf-8")
+            file.write('plugin://plugin.video.youtube/play/?video_id='+data['video_id'])
+            file.close()
+        else:
+            f = xbmcvfs.File(write_file, 'w')              # Python 2
+            f.write(bytearray('plugin://plugin.video.youtube/play/?video_id='+data['video_id'].encode('utf-8')))
+            f.close()                 
+        PARSER['steps'] += 1
+        if LOCAL_CONF['update'] == False:
+            PDIALOG.update(int(100 * PARSER['steps'] / PARSER['total_steps']), data['title'] )        
         CONFIG['channels'][data['channelId']]['last_video'] = {'video_id' : data['video_id'], 'aired' : aired_timestamp , 'season' : str(data['season']) , 'episode' : str(data['episode']) }
         __save()
+    if addon.getSetting('refresh_after_add') == 'true':
+        time.sleep(1)
         xbmc.executebuiltin("UpdateLibrary(video)")
 
 
 def __refresh():
-    xbmcgui.Dialog().notification(addonname, 'Updating channels', xbmcgui.NOTIFICATION_INFO, 5000)
+    xbmcgui.Dialog().notification(addonname, 'Updating channels', addon_resources+'/icon.png', 5000)
     for items in CONFIG['channels']:
         try:
             VIDEOS.clear()
             VIDEO_DURATION.clear()
         except AttributeError:
             del VIDEOS[:]
-            VIDEO_DURATION = {}
+            VIDEO_DURATION = {}            
         LOCAL_CONF['update'] = True
         __parse_uploads(False,CONFIG['channels'][items]['playlist_id'],None, update=True)
     CONFIG['last_scan'] = int(time.time())
     __save()
-    xbmcgui.Dialog().notification(addonname, 'Update finished', xbmcgui.NOTIFICATION_INFO, 5000)
+    xbmcgui.Dialog().notification(addonname, 'Update finished', addon_resources+'/icon.png', 5000)
 
 
-
-
-def __folders(flag):
-    if 'search' in flag:
+def __folders(*args):
+    if 'search' in args:
         for items in SEARCH_QUERY:
             li = xbmcgui.ListItem(items)
             info = {'plot': SEARCH_QUERY[items]['description']}
@@ -420,7 +581,7 @@ def __folders(flag):
             li.setArt({'thumb': SEARCH_QUERY[items]['thumbnail']})
             url = __build_url({'mode': 'AddItem', 'foldername': SEARCH_QUERY[items]['id'] })
             xbmcplugin.addDirectoryItem(handle=addon_handle, url=url, listitem=li, isFolder=True)
-    elif 'Manage' in flag:
+    elif 'Manage' in args:
         for items in CONFIG['channels']:
             plot = ""
             thumb = addon_resources+'/media/youtube_logo.jpg'
@@ -433,10 +594,11 @@ def __folders(flag):
             info = {'plot': plot}
             li.setInfo('video', info)
             li.setArt({'thumb': thumb})
-            #li.addContextMenuItems([('Rescan', ''),('Remove','')])
+            li.addContextMenuItems([('Rescan', ''),('Remove','')])
             url = __build_url({'mode': 'C_MENU', 'foldername': items })
             xbmcplugin.addDirectoryItem(handle=addon_handle, url=url, listitem=li, isFolder=True)
-    elif 'menu' in flag:
+
+    elif 'menu' in args:
         menuItems = {'Add Channel':'Add channels', 'Manage':'Manage channelino','Refresh all':'Refresh challeino'}
         for items in menuItems:
             pass
@@ -449,8 +611,76 @@ def __folders(flag):
             #li.addContextMenuItems([('Rescan', ''),('Remove','')])
             url = __build_url({'mode': 'ManageItem', 'foldername': ezy })
             xbmcplugin.addDirectoryItem(handle=addon_handle, url=url, listitem=li, isFolder=True)
+#SEPARATOR
+        thumb = addon_resources+'/media/buttons/empty.png'
+        li = xbmcgui.ListItem(' ')
+        li.setArt({'thumb': thumb})
+        li.setInfo('video', {'plot':'Oh hi there! :)'})
+        xbmcplugin.addDirectoryItem(handle=addon_handle, url='plugin://'+addonID, listitem=li, isFolder=True)
+#SEPARATOR
+        thumb = addon_resources+'/media/buttons/empty.png'
+        li = xbmcgui.ListItem(' ')
+        li.setArt({'thumb': thumb})
+        li.setInfo('video', {'plot':'Oh hi there! :)'})
+        xbmcplugin.addDirectoryItem(handle=addon_handle, url='plugin://'+addonID, listitem=li, isFolder=True)        
+#SEPARATOR
+        thumb = addon_resources+'/media/buttons/empty.png'
+        li = xbmcgui.ListItem(' ')
+        li.setArt({'thumb': thumb})
+        li.setInfo('video', {'plot':'Oh hi there! :)'})
+        xbmcplugin.addDirectoryItem(handle=addon_handle, url='plugin://'+addonID, listitem=li, isFolder=True)        
+#SEPARATOR
+        thumb = addon_resources+'/media/buttons/empty.png'
+        li = xbmcgui.ListItem(' ')
+        li.setArt({'thumb': thumb})
+        li.setInfo('video', {'plot':'Oh hi there! :)'})
+        xbmcplugin.addDirectoryItem(handle=addon_handle, url='plugin://'+addonID, listitem=li, isFolder=True)                
+        #ADDON SETTINGS
+        thumb = addon_resources+'/media/buttons/Settings.png'
+        li = xbmcgui.ListItem('Addon Settings')
+        li.setArt({'thumb': thumb})
+        li.addContextMenuItems([('Rescan', ''),('Remove','')])
+        url = __build_url({'mode': 'OpenSettings', 'foldername': ' ' })
+        xbmcplugin.addDirectoryItem(handle=addon_handle, url=url, listitem=li, isFolder=True)
+        #ADDON INFO (Next update)
+        if 'last_scan' in CONFIG:
+            now = int(time.time())
+            countdown=int(CONFIG['last_scan'] + int(xbmcaddon.Addon().getSetting('update_interval'))*3600)
+            thumb = addon_resources+'/media/buttons/Update.png'
+            li = xbmcgui.ListItem('Next scheduled update in:          ' + convert(countdown - now))
+            li.setArt({'thumb': thumb})
+            li.setInfo('video', {'plot': 'Time until token resets: \n' + convert(__get_token_reset(),'text') })
+            li.addContextMenuItems([('Rescan', ''),('Remove','')])
+            url = __build_url({'mode': 'OpenSettings', 'foldername': ' ' })
+            xbmcplugin.addDirectoryItem(handle=addon_handle, url=url, listitem=li, isFolder=False)
+            now = int(time.time())
 
     xbmcplugin.endOfDirectory(addon_handle)
+
+def __logger(a):
+    xbmc.log(str(a),level=xbmc.LOGNOTICE)
+
+def __menu(*args):
+    menuItems = ['Add Channel', 'Manage','Refresh all']
+    if args:
+        xbmcplugin.endOfDirectory(addon_handle)
+        menuItems=(args[0])
+    dialog = xbmcgui.Dialog()
+    ret = dialog.select(addonname, menuItems)
+    if ret == -1 or ret == None:
+        xbmc.executebuiltin("Action(Back)")
+        xbmc.executebuiltin("Action(Back)")
+    elif menuItems[ret] == 'Add Channel':
+        query=__ask('','Search for a channel')
+        if query:
+            LOCAL_CONF['update'] = False
+            __search(query)
+    elif menuItems[ret] == 'Manage':
+        __folders('list')
+    elif menuItems[ret] == 'Refresh all':
+        LOCAL_CONF['update'] = False
+        __refresh()
+
 
 
 def __C_MENU(C_ID):
@@ -471,8 +701,8 @@ def __C_MENU(C_ID):
                 shutil.rmtree(cdir)
                 xbmc.executebuiltin("CleanLibrary(video)")
                 pass
-
 __start_up()
+#mode = args.get('mode', None)
 
 try:
     mode = sys.argv[2][1:].split(u'mode')[1][1:]
@@ -495,7 +725,6 @@ elif mode == 'ManageItem':
         query=__ask('','Search for a channel')
         if query:
             LOCAL_CONF['update'] = False
-            
             __search(query)
     elif foldername == 'Manage':
         __folders('Manage')
@@ -504,6 +733,9 @@ elif mode == 'ManageItem':
         __refresh()
 elif mode == 'C_MENU':
     __C_MENU(foldername)
-    
 elif mode == 'Refresh':
     __refresh()
+elif mode == 'OpenSettings':
+    xbmcaddon.Addon(addonID).openSettings()    
+
+
