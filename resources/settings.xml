@@ -1,19 +1,15 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <settings>
-    <category label="Default">
-        <setting label="Youtube API key" type="text"   id="API_key" default=""/>
-        <setting label="Scan for new content every" type="bool"   id="auto_refresh" default="true"/>
-        <setting subsetting="true" label="Hours" type="slider" id="update_interval" default="12" range="6,2,168" option="int" />
-        <setting label="Start library scan after adding a channel" type="bool"   id="refresh_after_add" default="true"/>
+    <category label="30008">
+        <setting label="30002" type="text"   id="API_key" default=""/>
+        <setting label="30003" type="bool"   id="auto_refresh" default="true"/>
+        <setting subsetting="true" label="30004" type="slider" id="update_interval" default="12" range="6,2,168" option="int" />
+        <setting label="30005" type="bool"   id="refresh_after_add" default="true"/>
         <setting type="sep"/>
-        <setting label="Limit imports (to save API quota)" type="bool"   id="toggle_import_limit" default="false"/>
-        <setting subsetting="true" label="Limit" type="slider" id="import_limit" default="1000" range="500,500,10000" option="int" />
+        <setting label="30006" type="bool"   id="toggle_import_limit" default="false"/>
+        <setting subsetting="true" label="30007" type="slider" id="import_limit" default="1000" range="500,500,10000" option="int" />
     </category>
-    <category label="DEV">
-    	<setting label="Change to random for super happy funtime! LOL" type="lsep"/>
-        <setting label="Server override." type="text" option="urlencoded" id="Server_override" default=""/>
-        <setting label="SUPER HAPPY FUN TIME!!!" type="bool"   id="server_override_toggle" default="false"/>
-        <setting label="(JK don't do it it'll break the addon)" type="lsep"/>
-        <setting label="use cache" type="bool" id="use_cache" default="false"/>        
+    <category label="30009">
+        <setting label="30010" type="bool" id="use_cache" default="false"/>        
     </category>    
 </settings>

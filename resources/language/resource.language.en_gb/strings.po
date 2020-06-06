@@ -1,0 +1,194 @@
+# Kodi Media Center language file
+# Addon Name: Skin Widgets
+# Addon id: plugin.youtube2kodilibrary
+# Addon Provider: Evantaur
+msgid ""
+msgstr ""
+"Project-Id-Version: plugin.youtube2kodilibrary\n"
+"Report-Msgid-Bugs-To: https://github.com/evantaur/plugin.youtube2kodilibrary\n"
+"POT-Creation-Date: 2020-06-06 12:00+0000\n"
+"PO-Revision-Date: 2020-06-06 12:00+0000\n"
+"Last-Translator: Evantaur <>\n"
+"Language-Team: English\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: en\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+###################################
+### Addon settings
+###################################
+
+msgctxt "Addon Summary"
+msgid "Import YouTube channels as TV-shows to library."
+msgstr ""
+
+msgctxt "Addon Description"
+msgid "Add channels and playlists from YouTube to Library as TV-shows, movies or music videos."
+msgstr ""
+
+msgctxt "Addon Disclaimer"
+msgid ""
+msgstr ""
+
+msgctxt "#30001"
+msgid "Recommendations"
+msgstr ""
+
+msgctxt "#30002"
+msgid "You Tube API Key:"
+msgstr ""
+
+msgctxt "#30003"
+msgid "Scan for new content every:"
+msgstr ""
+
+msgctxt "#30004"
+msgid "Hours"
+msgstr ""
+
+msgctxt "#30005"
+msgid "Start library scan after adding a channel."
+msgstr ""
+
+msgctxt "#30006"
+msgid "Limit imports (to save API quota)"
+msgstr ""
+
+msgctxt "#30007"
+msgid "Limit"
+msgstr ""
+
+msgctxt "#30008"
+msgid "Default"
+msgstr ""
+
+msgctxt "#30009"
+msgid "DEV"
+msgstr ""
+
+msgctxt "#30010"
+msgid "use cache"
+msgstr ""
+
+msgctxt "#30011"
+msgid "use cache"
+msgstr ""
+
+msgctxt "#30012"
+msgid "Captain teststring"
+msgstr ""
+
+msgctxt "#30013"
+msgid "Captain {test}"
+msgstr ""
+
+msgctxt "#30014"
+msgid "No such channel."
+msgstr ""
+
+msgctxt "#30015"
+msgid "No such channel."
+msgstr ""
+
+msgctxt "#30016"
+msgid "Downloading channel info... "
+msgstr ""
+
+msgctxt "#30017"
+msgid "SEASON: "
+msgstr ""
+
+msgctxt "#30018"
+msgid "would you like to use the same API key you have set on YouTube addon?"
+msgstr ""
+
+msgctxt "#30019"
+msgid "You\'ll need to aquire YouTube API key for this addon to work.\nfor instructions see: \nhttp://valkyr.xyz/ytapi"
+msgstr ""
+
+msgctxt "#30020"
+msgid "API key"
+msgstr ""
+
+msgctxt "#30021"
+msgid "Key is valid, thank you!"
+msgstr ""
+
+msgctxt "#30022"
+msgid "Key is invalid"
+msgstr ""
+
+msgctxt "#30023"
+msgid "Nothing given"
+msgstr ""
+
+msgctxt "#30024"
+msgid "Importing channel..."
+msgstr ""
+
+msgctxt "#30025"
+msgid "Please wait."
+msgstr ""
+
+msgctxt "#30026"
+msgid "Updating channels"
+msgstr ""
+
+msgctxt "#30027"
+msgid "Update finished."
+msgstr ""
+
+msgctxt "#30028"
+msgid "Add Channel"
+msgstr ""
+
+msgctxt "#30029"
+msgid "Manage"
+msgstr ""
+
+msgctxt "#30030"
+msgid "Refresh all"
+msgstr ""
+
+msgctxt "#30031"
+msgid "Refresh"
+msgstr ""
+
+msgctxt "#30032"
+msgid "Addon Settings"
+msgstr ""
+
+#Please keep this 35 chars long if possible :)
+msgctxt "#30033"
+msgid "Next scheduled update in:          "
+msgstr ""
+
+msgctxt "#30034"
+msgid "Time until token resets:"
+msgstr ""
+
+msgctxt "#30035"
+msgid "Delete: {0}"
+msgstr ""
+
+msgctxt "#30036"
+msgid "Are you sure you wish to remove {0}?"
+msgstr ""
+
+msgctxt "#30037"
+msgid "Remove {0} also from the library?"
+msgstr ""
+
+msgctxt "#30038"
+msgid "Search for a channel"
+msgstr ""
+
+msgctxt "#30039"
+msgid "Delete"
+msgstr ""
+
+msgctxt "#30040"
+msgid " "
+msgstr ""

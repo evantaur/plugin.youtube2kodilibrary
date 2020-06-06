@@ -48,6 +48,10 @@ VIDEOS = []
 VIDEO_DURATION = {}
 PDIALOG = xbmcgui.DialogProgress()
 LOCAL_CONF = {'update':False}
+AddonString =  xbmcaddon.Addon().getLocalizedString 
+
+#def AddonString(string_id):
+#	return addon.getLocalizedString(string_id)
 
 def __build_url(query):
     if PY_V >= 3:                       #Python 3
@@ -100,7 +104,11 @@ def __save():
         f.close()         
 
 def __print(what):
-    xbmcgui.Dialog().ok(addonname, what)
+    try:
+        t = what + 1
+        xbmcgui.Dialog().ok(addonname, AddonString(what))
+    except TypeError:
+        xbmcgui.Dialog().ok(addonname, what)
 
 
 def __ask(name, *args):
@@ -114,6 +122,9 @@ def __ask(name, *args):
     kb.setDefault(name)
     kb.setHiddenInput(False)
     kb.doModal()
+    if kb.isConfirmed() == False:
+        __print('Cancelled!')
+        raise SystemExit()
     return(kb.getText())
   
 def __check_key_validity(key):
@@ -180,6 +191,7 @@ def __add_channel(channel_id,refresh=None):
     except NameError:
         pass    
     if 'items' not in reply:
+        __print(AddonString(30015)) #No Such channel
         return "no such channel"
     data['channel_id'] = channel_id
     data['title'] = reply['items'][0]['brandingSettings']['channel']['title']
@@ -270,7 +282,7 @@ def __parse_uploads(fullscan, playlist_id, page_token=None, update=False):
             PARSER['total_steps'] = int(totalResults * 4)
         PARSER['total'] = totalResults
         if PARSER['steps'] < 1 and LOCAL_CONF['update'] == False:
-            PDIALOG.create('Fetching channel info', 'Please wait...')
+            PDIALOG.create(AddonString(30016), AddonString(30025))
         try:
             if 'last_video' in CONFIG['channels'][reply['items'][0]['snippet']['channelId']]:
                 last_video_id = CONFIG['channels'][reply['items'][0]['snippet']['channelId']]['last_video']['video_id']
@@ -291,9 +303,10 @@ def __parse_uploads(fullscan, playlist_id, page_token=None, update=False):
                 # There seems to be a problem with \n and progress dialog in leia
                 # so let's not use it in leia....
                 if PY_V >= 3:
-                    dialog_string='Downloading info: ' + str(PARSER['items']) + '/' + str(PARSER['total']) + '\nYEAR: ' + str(season)
+                	# "Downloading channel info"
+                    dialog_string=AddonString(30016) + str(PARSER['items']) + '/' + str(PARSER['total']) + '\n' + AddonString(30017) + str(season)
                 else:
-                    dialog_string='Downloading info: ' + str(PARSER['items']) + '/' + str(PARSER['total']) + '      YEAR: ' + str(season)
+                    dialog_string=AddonString(30016) + str(PARSER['items']) + '/' + str(PARSER['total']) + '     ' + AddonString(30017) + str(season)
                 PDIALOG.update(int(100 * PARSER['steps'] / PARSER['total_steps']), dialog_string)
         __get_video_details(vid)
         if 'nextPageToken' not in reply or not fullscan or PARSER['items'] >= PARSER['total']:
@@ -352,7 +365,8 @@ def __check_if_youtube_addon_has_api_key():
     try:
         yt_api_key = xbmcaddon.Addon('plugin.video.youtube').getSetting('youtube.api.key')
         if yt_api_key:
-            ret = xbmcgui.Dialog().yesno(addonname, 'would you like to use the same API key you have set on YouTube addon?')
+        	# "would you like to use the same API key you have set on YouTube addon?"
+            ret = xbmcgui.Dialog().yesno(addonname, AddonString(30018))
             if ret:
                 return yt_api_key
     except RuntimeError:
@@ -366,21 +380,24 @@ def __start_up():
         if ciyapi != None:
             API_KEY=ciyapi
         else:
-            __print("""
-You\'ll need to aquire YouTube API key for this addon to work.
-for instructions see: https://developers.google.com/youtube/v3/getting-started
-""")
-            API_KEY=__ask('','API key')
-        if API_KEY != "":
-            if __check_key_validity(API_KEY) == 'valid':
-                addon.setSetting('API_key',API_KEY)
-                __print('Key is valid, thank you!')
-            else:
-                __print('Key is invalid')
-                raise SystemExit(" error")
-        else:
-            __print('Nothing given')
-            raise SystemExit
+        	#whine about the missing API key...
+            __print(AddonString(30019))
+            wrongkey=""
+            while True:
+                API_KEY=__ask(wrongkey,AddonString(30020))
+                if API_KEY != "":
+                        if __check_key_validity(API_KEY) == 'valid':
+                            addon.setSetting('API_key',API_KEY)
+                            #Key is valid, ty....
+                            __print(30021)
+                            break
+                        #key is validn't    
+                        __print(30022)
+                        wrongkey = API_KEY
+                else:
+                	#empty
+                    __print(30023)
+                    raise SystemExit
     newlimit = int(math.ceil(int(addon.getSetting('import_limit')) / 100.0)) * 100
     addon.setSetting('import_limit',str(newlimit))
     
@@ -406,7 +423,7 @@ def __search(query):
     except NameError:
         pass    
     if not 'items' in reply:
-        __print('No such channel')
+        __print(30015)
         raise SystemExit(" error")
     ###########################
     # No idea why the first(0) item not always showing on results, hack till i do
@@ -454,7 +471,8 @@ def __render(render_style='Full'):
     if len(VIDEOS) <= 0:
         return
     if LOCAL_CONF['update'] == False:
-        PDIALOG.create('Importing channel', 'Please wait...')
+    	#Importing channel, plz wait.
+        PDIALOG.create(AddonString(30024), AddonString(30025))
     year = 0
     episode = 0
     l_count=0
@@ -478,7 +496,6 @@ def __render(render_style='Full'):
                 PARSER['steps'] += 2
                 continue
         except NameError:
-            __logger('name error')
             pass
         data['author'] = item['snippet']['channelTitle']
         data['channelId'] = item['snippet']['channelId']
@@ -555,7 +572,8 @@ def __render(render_style='Full'):
 
 
 def __refresh():
-    xbmcgui.Dialog().notification(addonname, 'Updating channels', addon_resources+'/icon.png', 5000)
+	# Updating channels...
+    xbmcgui.Dialog().notification(addonname, AddonString(30026), addon_resources+'/icon.png', 5000)
     for items in CONFIG['channels']:
         try:
             VIDEOS.clear()
@@ -567,7 +585,8 @@ def __refresh():
         __parse_uploads(False,CONFIG['channels'][items]['playlist_id'],None, update=True)
     CONFIG['last_scan'] = int(time.time())
     __save()
-    xbmcgui.Dialog().notification(addonname, 'Update finished', addon_resources+'/icon.png', 5000)
+    #Update finished.
+    xbmcgui.Dialog().notification(addonname, AddonString(30027), addon_resources+'/icon.png', 5000)
 
 
 def __folders(*args):
@@ -592,34 +611,40 @@ def __folders(*args):
             info = {'plot': plot}
             li.setInfo('video', info)
             li.setArt({'thumb': thumb})
-            li.addContextMenuItems([('Rescan', ''),('Remove','')])
+            #li.addContextMenuItems([('Rescan', ''),('Remove','')])
             url = __build_url({'mode': 'C_MENU', 'foldername': items })
             xbmcplugin.addDirectoryItem(handle=addon_handle, url=url, listitem=li, isFolder=True)
 
     elif 'menu' in args:
         menuItems = {'Add Channel':'Add channels', 'Manage':'Manage channelino','Refresh all':'Refresh challeino'}
-        for items in menuItems:
-            pass
-            ezy=items.replace(' ','_')
-            thumb = addon_resources+'/media/buttons/'+ezy+'.png'
-            li = xbmcgui.ListItem(items)
-            info = {'plot': menuItems[items]}
-            li.setInfo('video', info)
-            li.setArt({'thumb': thumb})
-            #li.addContextMenuItems([('Rescan', ''),('Remove','')])
-            url = __build_url({'mode': 'ManageItem', 'foldername': ezy })
-            xbmcplugin.addDirectoryItem(handle=addon_handle, url=url, listitem=li, isFolder=True)
+
+#ADD CHANNEL        
+        thumb = addon_resources+'/media/buttons/Add_Channel.png'
+        li = xbmcgui.ListItem(AddonString(30028))
+        li.setArt({'thumb': thumb})
+        url = __build_url({'mode': 'ManageItem', 'foldername': 'Add_Channel' })
+        xbmcplugin.addDirectoryItem(handle=addon_handle, url=url, listitem=li, isFolder=True)
+#Manage        
+        thumb = addon_resources+'/media/buttons/Manage.png'
+        li = xbmcgui.ListItem(AddonString(30029))
+        li.setArt({'thumb': thumb})
+        url = __build_url({'mode': 'ManageItem', 'foldername': 'Manage' })
+        xbmcplugin.addDirectoryItem(handle=addon_handle, url=url, listitem=li, isFolder=True)
+#ADD CHANNEL        
+        thumb = addon_resources+'/media/buttons/Refresh_All.png'
+        li = xbmcgui.ListItem(AddonString(30030))
+        li.setArt({'thumb': thumb})
+        url = __build_url({'mode': 'ManageItem', 'foldername': 'Refresh_all' })
+        xbmcplugin.addDirectoryItem(handle=addon_handle, url=url, listitem=li, isFolder=True)        
 #SEPARATOR
         thumb = addon_resources+'/media/buttons/empty.png'
         li = xbmcgui.ListItem(' ')
         li.setArt({'thumb': thumb})
-        li.setInfo('video', {'plot':'Oh hi there! :)'})
         xbmcplugin.addDirectoryItem(handle=addon_handle, url='plugin://'+addonID, listitem=li, isFolder=True)
 #SEPARATOR
         thumb = addon_resources+'/media/buttons/empty.png'
         li = xbmcgui.ListItem(' ')
         li.setArt({'thumb': thumb})
-        li.setInfo('video', {'plot':'Oh hi there! :)'})
         xbmcplugin.addDirectoryItem(handle=addon_handle, url='plugin://'+addonID, listitem=li, isFolder=True)        
 #SEPARATOR
         thumb = addon_resources+'/media/buttons/empty.png'
@@ -631,23 +656,22 @@ def __folders(*args):
         thumb = addon_resources+'/media/buttons/empty.png'
         li = xbmcgui.ListItem(' ')
         li.setArt({'thumb': thumb})
-        li.setInfo('video', {'plot':'Oh hi there! :)'})
         xbmcplugin.addDirectoryItem(handle=addon_handle, url='plugin://'+addonID, listitem=li, isFolder=True)                
-        #ADDON SETTINGS
+#ADDON SETTINGS
         thumb = addon_resources+'/media/buttons/Settings.png'
         li = xbmcgui.ListItem('Addon Settings')
         li.setArt({'thumb': thumb})
         li.addContextMenuItems([('Rescan', ''),('Remove','')])
         url = __build_url({'mode': 'OpenSettings', 'foldername': ' ' })
         xbmcplugin.addDirectoryItem(handle=addon_handle, url=url, listitem=li, isFolder=True)
-        #ADDON INFO (Next update)
+#ADDON INFO (Next update)
         if 'last_scan' in CONFIG:
             now = int(time.time())
             countdown=int(CONFIG['last_scan'] + int(xbmcaddon.Addon().getSetting('update_interval'))*3600)
             thumb = addon_resources+'/media/buttons/Update.png'
-            li = xbmcgui.ListItem('Next scheduled update in:          ' + convert(countdown - now))
+            li = xbmcgui.ListItem(AddonString(30033) + convert(countdown - now))
             li.setArt({'thumb': thumb})
-            li.setInfo('video', {'plot': 'Time until token resets: \n' + convert(__get_token_reset(),'text') })
+            li.setInfo('video', {'plot': AddonString(30034) + '\n' + convert(__get_token_reset(),'text') })
             li.addContextMenuItems([('Rescan', ''),('Remove','')])
             url = __build_url({'mode': 'OpenSettings', 'foldername': ' ' })
             xbmcplugin.addDirectoryItem(handle=addon_handle, url=url, listitem=li, isFolder=False)
@@ -658,48 +682,32 @@ def __folders(*args):
 def __logger(a):
     xbmc.log(str(a),level=xbmc.LOGNOTICE)
 
-def __menu(*args):
-    menuItems = ['Add Channel', 'Manage','Refresh all']
-    if args:
-        xbmcplugin.endOfDirectory(addon_handle)
-        menuItems=(args[0])
-    dialog = xbmcgui.Dialog()
-    ret = dialog.select(addonname, menuItems)
-    if ret == -1 or ret == None:
-        xbmc.executebuiltin("Action(Back)")
-        xbmc.executebuiltin("Action(Back)")
-    elif menuItems[ret] == 'Add Channel':
-        query=__ask('','Search for a channel')
-        if query:
-            LOCAL_CONF['update'] = False
-            __search(query)
-    elif menuItems[ret] == 'Manage':
-        __folders('list')
-    elif menuItems[ret] == 'Refresh all':
-        LOCAL_CONF['update'] = False
-        __refresh()
-
-
-
 def __C_MENU(C_ID):
-    menuItems=['Refresh','Delete']
+	#0: Refresh
+	#1: Delete
+    menuItems=[AddonString(30031),AddonString(30039)]
     ret = xbmcgui.Dialog().select('Manage: '+CONFIG['channels'][C_ID]['channel_name'], menuItems)
-    if menuItems[ret] == 'Refresh':
+    if ret == 0:
         __add_channel(C_ID)
-    elif menuItems[ret] == 'Delete':
+    elif ret == 1:
         cname=CONFIG['channels'][C_ID]['channel_name']
         cdir = CHANNELS+'\\'+re.sub(r'[^\w\s]', '', cname)
         __logger(cdir)
-        ret = xbmcgui.Dialog().yesno('Delete: '+cname, 'Are you sure you wish to remove "'+cname+'"?')
-        if ret:
+        #Are you sure to remove X...
+        ret = xbmcgui.Dialog().yesno(AddonString(30035).format(cname), AddonString(30036).format(cname))
+        if ret == True:
             CONFIG['channels'].pop(C_ID)
             __save()
-            ret = xbmcgui.Dialog().yesno('Delete: '+cname, 'Remove "'+cname+'" also from the library?')
+            #Remove from library?
+            ret = xbmcgui.Dialog().yesno(AddonString(30035).format(cname), AddonString(30037).format(cname))
             if ret:
                 shutil.rmtree(cdir)
                 xbmc.executebuiltin("CleanLibrary(video)")
                 pass
+
 __start_up()
+
+
 #mode = args.get('mode', None)
 
 try:
@@ -720,7 +728,7 @@ elif mode == 'AddItem':
     __add_channel(foldername)
 elif mode == 'ManageItem':
     if foldername == 'Add_Channel':
-        query=__ask('','Search for a channel')
+        query=__ask('',AddonString(30038))
         if query:
             LOCAL_CONF['update'] = False
             __search(query)
