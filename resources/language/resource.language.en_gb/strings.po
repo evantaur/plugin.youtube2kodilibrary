@@ -190,5 +190,9 @@ msgid "Delete"
 msgstr ""
 
 msgctxt "#30040"
-msgid " "
+msgid "as TV-Show"
+msgstr ""
+
+msgctxt "#30041"
+msgid "as Music Video"
 msgstr ""
