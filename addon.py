@@ -5,14 +5,13 @@ from __future__ import division
 from __future__ import with_statement
 from __future__ import absolute_import
 import sys
-PY_V=sys.version_info[0]
+PY_V = sys.version_info[0]
 import json
 import datetime
 import time
 import re
 import requests
 import urllib
-from urlparse import urlparse
 import xbmc
 import xbmcvfs
 import xbmcaddon
@@ -21,6 +20,8 @@ import xbmcplugin
 import codecs
 import shutil
 import math
+if PY_V == 2:
+    from urlparse import urlparse
 
 addon       = xbmcaddon.Addon()
 addonname   = addon.getAddonInfo('name')
@@ -113,6 +114,9 @@ def __ask(name, *args):
     kb.setDefault(name)
     kb.setHiddenInput(False)
     kb.doModal()
+    if kb.isConfirmed() == False:
+        __print('Cancelled!')
+    	raise SystemExit()
     return(kb.getText())
   
 def __check_key_validity(key):
@@ -230,9 +234,8 @@ def __add_channel(channel_id,refresh=None):
     """.format(**data)
     tvshow_file = CHANNELS+'\\'+ re.sub(r'[^\w\s]', '', data['title']) + '\\'+'tvshow.nfo'
     if PY_V >= 3:
-        file = open(tvshow_file, 'w', encoding="utf-8")       # Python 3
-        file.write(output)
-        file.close()
+        with xbmcvfs.File(tvshow_file, 'w') as f:
+            result = f.write(output) 
     else:
         f = xbmcvfs.File(tvshow_file, 'w')                    # Python 2
         result = f.write(bytearray(output.encode('utf-8')))   #
@@ -290,7 +293,7 @@ def __parse_uploads(fullscan, playlist_id, page_token=None, update=False):
             if LOCAL_CONF['update'] == False:
                 # There seems to be a problem with \n and progress dialog in leia
                 # so let's not use it in leia....
-                if PY_V > 3:
+                if PY_V >= 3:
                     dialog_string='Downloading info: ' + str(PARSER['items']) + '/' + str(PARSER['total']) + '\nYEAR: ' + str(season)
                 else:
                     dialog_string='Downloading info: ' + str(PARSER['items']) + '/' + str(PARSER['total']) + '      YEAR: ' + str(season)
@@ -370,17 +373,19 @@ def __start_up():
 You\'ll need to aquire YouTube API key for this addon to work.
 for instructions see: https://developers.google.com/youtube/v3/getting-started
 """)
-            API_KEY=__ask('','API key')
-        if API_KEY != "":
-            if __check_key_validity(API_KEY) == 'valid':
-                addon.setSetting('API_key',API_KEY)
-                __print('Key is valid, thank you!')
-            else:
-                __print('Key is invalid')
-                raise SystemExit(" error")
-        else:
-            __print('Nothing given')
-            raise SystemExit
+            wrongkey=""
+            while True:
+                API_KEY=__ask(wrongkey,'API key')
+                if API_KEY != "":
+                        if __check_key_validity(API_KEY) == 'valid':
+                            addon.setSetting('API_key',API_KEY)
+                            __print('Key is valid, thank you!')
+                            break
+                        __print('Key is invalid')
+                        wrongkey = API_KEY
+                else:
+                    __print('Nothing given')
+                    raise SystemExit
     newlimit = int(math.ceil(int(addon.getSetting('import_limit')) / 100.0)) * 100
     addon.setSetting('import_limit',str(newlimit))
     
@@ -527,9 +532,8 @@ def __render(render_style='Full'):
         file_location = CHANNELS+'\\'+re.sub(r'[^\w\s]', '', data['author'])+'\\'+str(data['season']) + '\\s' + str(data['season']) +'e' + str(data['episode'])
         write_file = file_location+'.nfo'
         if PY_V >= 3:
-            file = open(write_file, 'w', encoding="utf-8") #Python 3
-            file.write(output)
-            file.close()
+            with xbmcvfs.File(write_file, 'w') as f:
+                result = f.write(output) 
         else:
             f = xbmcvfs.File(write_file, 'w') 
             f.write(bytearray(output.encode('utf-8')))
@@ -539,9 +543,8 @@ def __render(render_style='Full'):
             PDIALOG.update(int(100 * PARSER['steps'] / PARSER['total_steps']), data['title'] )        
         write_file = file_location+'.strm'
         if PY_V >= 3:
-            file = open(write_file, 'w', encoding="utf-8")
-            file.write('plugin://plugin.video.youtube/play/?video_id='+data['video_id'])
-            file.close()
+            with xbmcvfs.File(write_file, 'w') as f:
+                f.write('plugin://plugin.video.youtube/play/?video_id='+data['video_id'])             
         else:
             f = xbmcvfs.File(write_file, 'w')              # Python 2
             f.write(bytearray('plugin://plugin.video.youtube/play/?video_id='+data['video_id'].encode('utf-8')))
@@ -561,7 +564,7 @@ def __refresh():
     for items in CONFIG['channels']:
         try:
             VIDEOS.clear()
-            VIDEO_DURATION.clear()
+            VIDEO_DURATION = {}
         except AttributeError:
             del VIDEOS[:]
             VIDEO_DURATION = {}            
