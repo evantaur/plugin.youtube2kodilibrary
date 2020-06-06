@@ -231,9 +231,8 @@ def __add_channel(channel_id,refresh=None):
     """.format(**data)
     tvshow_file = CHANNELS+'\\'+ re.sub(r'[^\w\s]', '', data['title']) + '\\'+'tvshow.nfo'
     if PY_V >= 3:
-        file = open(tvshow_file, 'w', encoding="utf-8")       # Python 3
-        file.write(output)
-        file.close()
+        with xbmcvfs.File(tvshow_file, 'w') as f:
+            result = f.write(output) 
     else:
         f = xbmcvfs.File(tvshow_file, 'w')                    # Python 2
         result = f.write(bytearray(output.encode('utf-8')))   #
@@ -528,9 +527,8 @@ def __render(render_style='Full'):
         file_location = CHANNELS+'\\'+re.sub(r'[^\w\s]', '', data['author'])+'\\'+str(data['season']) + '\\s' + str(data['season']) +'e' + str(data['episode'])
         write_file = file_location+'.nfo'
         if PY_V >= 3:
-            file = open(write_file, 'w', encoding="utf-8") #Python 3
-            file.write(output)
-            file.close()
+            with xbmcvfs.File(write_file, 'w') as f:
+                result = f.write(output) 
         else:
             f = xbmcvfs.File(write_file, 'w') 
             f.write(bytearray(output.encode('utf-8')))
@@ -540,9 +538,8 @@ def __render(render_style='Full'):
             PDIALOG.update(int(100 * PARSER['steps'] / PARSER['total_steps']), data['title'] )        
         write_file = file_location+'.strm'
         if PY_V >= 3:
-            file = open(write_file, 'w', encoding="utf-8")
-            file.write('plugin://plugin.video.youtube/play/?video_id='+data['video_id'])
-            file.close()
+            with xbmcvfs.File(write_file, 'w') as f:
+                f.write('plugin://plugin.video.youtube/play/?video_id='+data['video_id'])             
         else:
             f = xbmcvfs.File(write_file, 'w')              # Python 2
             f.write(bytearray('plugin://plugin.video.youtube/play/?video_id='+data['video_id'].encode('utf-8')))
