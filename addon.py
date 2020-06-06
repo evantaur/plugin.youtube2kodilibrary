@@ -124,7 +124,7 @@ def __ask(name, *args):
     kb.doModal()
     if kb.isConfirmed() == False:
         __print('Cancelled!')
-    	raise SystemExit()
+        raise SystemExit()
     return(kb.getText())
   
 def __check_key_validity(key):
