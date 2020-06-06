@@ -12,6 +12,9 @@ addon_path = xbmc.translatePath("special://profile/addon_data/"+addonID)
 NOW = int(time.time())
 LAST_SCAN=872835240
 
+#wait a little before starting
+time.sleep(5)
+
 if xbmcvfs.exists(addon_path+'//config.json'):
     with open(addon_path+'//config.json', 'r') as f:
         CONFIG = json.load(f)
