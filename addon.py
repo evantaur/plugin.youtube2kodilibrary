@@ -4,6 +4,7 @@ YOUTUBE CHANNELS TO KODI
 from __future__ import division
 from __future__ import with_statement
 from __future__ import absolute_import
+import os
 import sys
 PY_V = sys.version_info[0]
 import json
@@ -18,7 +19,6 @@ import xbmcaddon
 import xbmcgui
 import xbmcplugin
 import codecs
-import shutil
 import math
 if PY_V == 2:
     from urlparse import urlparse
@@ -49,9 +49,6 @@ VIDEO_DURATION = {}
 PDIALOG = xbmcgui.DialogProgress()
 LOCAL_CONF = {'update':False}
 AddonString =  xbmcaddon.Addon().getLocalizedString 
-
-#def AddonString(string_id):
-#	return addon.getLocalizedString(string_id)
 
 def __build_url(query):
     if PY_V >= 3:                       #Python 3
@@ -303,7 +300,7 @@ def __parse_uploads(fullscan, playlist_id, page_token=None, update=False):
                 # There seems to be a problem with \n and progress dialog in leia
                 # so let's not use it in leia....
                 if PY_V >= 3:
-                	# "Downloading channel info"
+                    # "Downloading channel info"
                     dialog_string=AddonString(30016) + str(PARSER['items']) + '/' + str(PARSER['total']) + '\n' + AddonString(30017) + str(season)
                 else:
                     dialog_string=AddonString(30016) + str(PARSER['items']) + '/' + str(PARSER['total']) + '     ' + AddonString(30017) + str(season)
@@ -365,7 +362,7 @@ def __check_if_youtube_addon_has_api_key():
     try:
         yt_api_key = xbmcaddon.Addon('plugin.video.youtube').getSetting('youtube.api.key')
         if yt_api_key:
-        	# "would you like to use the same API key you have set on YouTube addon?"
+            # "would you like to use the same API key you have set on YouTube addon?"
             ret = xbmcgui.Dialog().yesno(addonname, AddonString(30018))
             if ret:
                 return yt_api_key
@@ -380,7 +377,7 @@ def __start_up():
         if ciyapi != None:
             API_KEY=ciyapi
         else:
-        	#whine about the missing API key...
+            #whine about the missing API key...
             __print(AddonString(30019))
             wrongkey=""
             while True:
@@ -395,7 +392,7 @@ def __start_up():
                         __print(30022)
                         wrongkey = API_KEY
                 else:
-                	#empty
+                    #empty
                     __print(30023)
                     raise SystemExit
     newlimit = int(math.ceil(int(addon.getSetting('import_limit')) / 100.0)) * 100
@@ -467,11 +464,30 @@ def __FormatTVshowNFO(**args):
 #        raise SystemExit(" error")
 #################################################
 
+
+# Thanks to <3
+# https://github.com/kodi-community-addons/script.skin.helper.skinbackup/blob/master/resources/lib/utils.py
+def recursive_delete_dir(fullpath):
+    '''helper to recursively delete a directory'''
+    success = True
+    if not isinstance(fullpath, unicode):
+        fullpath = fullpath.decode("utf-8")
+    dirs, files = xbmcvfs.listdir(fullpath)
+    for file in files:
+        file = file.decode("utf-8")
+        success = xbmcvfs.delete(os.path.join(fullpath, file))
+    for directory in dirs:
+        directory = directory.decode("utf-8")
+        success = recursive_delete_dir(os.path.join(fullpath, directory))
+    success = xbmcvfs.rmdir(fullpath)
+    return success 
+
+
 def __render(render_style='Full'):
     if len(VIDEOS) <= 0:
         return
     if LOCAL_CONF['update'] == False:
-    	#Importing channel, plz wait.
+        #Importing channel, plz wait.
         PDIALOG.create(AddonString(30024), AddonString(30025))
     year = 0
     episode = 0
@@ -572,7 +588,7 @@ def __render(render_style='Full'):
 
 
 def __refresh():
-	# Updating channels...
+    # Updating channels...
     xbmcgui.Dialog().notification(addonname, AddonString(30026), addon_resources+'/icon.png', 5000)
     for items in CONFIG['channels']:
         try:
@@ -683,8 +699,8 @@ def __logger(a):
     xbmc.log(str(a),level=xbmc.LOGNOTICE)
 
 def __C_MENU(C_ID):
-	#0: Refresh
-	#1: Delete
+    #0: Refresh
+    #1: Delete
     menuItems=[AddonString(30031),AddonString(30039)]
     ret = xbmcgui.Dialog().select('Manage: '+CONFIG['channels'][C_ID]['channel_name'], menuItems)
     if ret == 0:
@@ -701,14 +717,11 @@ def __C_MENU(C_ID):
             #Remove from library?
             ret = xbmcgui.Dialog().yesno(AddonString(30035).format(cname), AddonString(30037).format(cname))
             if ret:
-                shutil.rmtree(cdir)
-                xbmc.executebuiltin("CleanLibrary(video)")
-                pass
+                success = recursive_delete_dir(cdir)
+                if success:
+                    xbmc.executebuiltin("CleanLibrary(video)")
 
 __start_up()
-
-
-#mode = args.get('mode', None)
 
 try:
     mode = sys.argv[2][1:].split(u'mode')[1][1:]
