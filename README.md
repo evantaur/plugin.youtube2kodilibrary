@@ -14,6 +14,9 @@ if you have set custom api key for YouTube addon you should be able to skip this
 ###### Video source
 FOR TV-SHOWS:
 **special://profile/library/series**
+
 FOR MUSIC VIDEOS:
+
 **special://profile/library/music_videos**
+
 and for information provider choose local
