@@ -179,7 +179,7 @@ def c_download(req):
 
     else:
         requrl = requests.get(req)
-        reply = json.loads(requrl)
+        reply = json.loads(requrl.content)
     try:
         if 'error' in reply:
             e_reason=reply['error']['errors'][0]['reason']
