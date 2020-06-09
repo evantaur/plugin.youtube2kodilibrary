@@ -3,7 +3,7 @@
     <category label="30008">
         <setting label="30002" type="text"   id="API_key" default=""/>
         <setting label="30003" type="bool"   id="auto_refresh" default="true"/>
-        <setting subsetting="true" label="30004" type="slider" id="update_interval" default="12" range="6,2,168" option="int" />
+        <setting subsetting="true" label="30004" type="slider" id="update_interval" default="12" range="2,2,168" option="int" />
         <setting label="30005" type="bool"   id="refresh_after_add" default="true"/>
         <setting type="sep"/>
         <setting label="30006" type="bool"   id="toggle_import_limit" default="false"/>
