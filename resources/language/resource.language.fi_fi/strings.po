@@ -194,18 +194,5 @@ msgid "as TV-Show"
 msgstr ""
 
 msgctxt "#30041"
-msgid "as Music Videos"
+msgid "as Music Video"
 msgstr ""
-
-msgctxt "#30042"
-msgid "Music Videos"
-msgstr ""
-
-msgctxt "#30043"
-msgid "TV-shows"
-msgstr ""
-
-msgctxt "#30044"
-msgid "Update"
-msgstr ""
-
