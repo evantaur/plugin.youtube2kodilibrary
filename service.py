@@ -28,7 +28,7 @@ if __name__ == '__main__':
         if monitor.waitForAbort(5):
             # Abort was requested while waiting. We should exit
             break
-        if (LAST_SCAN + int(xbmcaddon.Addon().getSetting('update_interval'))*3600) <= NOW and \
+        if (LAST_SCAN + int(xbmcaddon.Addon().getSetting('update_interval'))*3600) <= int(time.time()) and \
             xbmcaddon.Addon().getSetting('API_key') and \
             xbmcaddon.Addon().getSetting('auto_refresh'):
             xbmc.executebuiltin('RunPlugin(plugin://'+addonID+'/?mode=Refresh)')
