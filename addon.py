@@ -59,15 +59,10 @@ def __build_url(query):
         return base_url + u'?' + urllib.urlencode(query)
 
 def convert(n,*args):
-    if 'text' in args:
-        returntime = time.strftime('%H %M', time.gmtime(n)).split(' ')
-        if returntime[0] == '00':
-            return returntime[1] + ' Minutes'
-        return  returntime[0] + ' Hours ' + returntime[1] + ' Minutes'
-    try:
-        return time.strftime('%H:%M:%S', time.gmtime(n)) 
-    except OSError:
-        return 'OSError'
+    returntime = str(datetime.timedelta(seconds=max(n,0))).split(':')
+    if returntime[0] == '00':
+        return returntime[1] + ' Minutes'
+    return  returntime[0] + ' Hours ' + returntime[1] + ' Minutes'
 
 def __get_token_reset():
     now = datetime.datetime.utcnow() - datetime.timedelta(hours=7)
@@ -807,6 +802,7 @@ def __refresh():
             VIDEO_DURATION = {}            
         LOCAL_CONF['update'] = True
         __parse_music(False,CONFIG['music_videos'][items]['playlist_id'],None, update=True)
+        __save()
 
 
 
