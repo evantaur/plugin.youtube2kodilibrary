@@ -6,9 +6,16 @@ import json
 import xbmc
 import xbmcvfs
 import xbmcaddon
+import sys
+
+PY_V = sys.version_info[0]
 
 addonID       = xbmcaddon.Addon().getAddonInfo('id')
-addon_path = xbmc.translatePath("special://profile/addon_data/"+addonID)
+if PY_V >= 3:
+    addon_path = xbmcvfs.translatePath("special://profile/addon_data/"+addonID)
+else:
+    addon_path = xbmc.translatePath("special://profile/addon_data/"+addonID)
+
 NOW = int(time.time())
 LAST_SCAN=872835240
 

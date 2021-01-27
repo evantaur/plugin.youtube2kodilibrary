@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: plugin.youtube2kodilibrary\n"
 "Report-Msgid-Bugs-To: https://github.com/evantaur/plugin.youtube2kodilibrary\n"
-"POT-Creation-Date: 2020-06-06 12:00+0000\n"
-"PO-Revision-Date: 2020-06-06 12:00+0000\n"
+"POT-Creation-Date: 2020-06-11 12:00+0000\n"
+"PO-Revision-Date: 2020-06-11 12:00+0000\n"
 "Last-Translator: Evantaur <>\n"
 "Language-Team: English\n"
 "MIME-Version: 1.0\n"
@@ -21,11 +21,11 @@ msgstr ""
 ###################################
 
 msgctxt "Addon Summary"
-msgid "Import YouTube channels as TV-shows to library."
+msgid "Tuo YouTube kanavia KODIn kirjastoon."
 msgstr ""
 
 msgctxt "Addon Description"
-msgid "Add channels and playlists from YouTube to Library as TV-shows, movies or music videos."
+msgid "Tuo YouTube kanavia KODIn kirjastoon, joko TV-ohjelmina, Musiikkivideoina tai Elokuvina"
 msgstr ""
 
 msgctxt "Addon Disclaimer"
@@ -33,31 +33,31 @@ msgid ""
 msgstr ""
 
 msgctxt "#30001"
-msgid "Recommendations"
+msgid "Suositukset"
 msgstr ""
 
 msgctxt "#30002"
-msgid "You Tube API Key:"
+msgid "You Tube API avain:"
 msgstr ""
 
 msgctxt "#30003"
-msgid "Scan for new content every:"
+msgid "Tarkista uudet videot joka:"
 msgstr ""
 
 msgctxt "#30004"
-msgid "Hours"
+msgid "Tunti"
 msgstr ""
 
 msgctxt "#30005"
-msgid "Start library scan after adding a channel."
+msgid "Skannaa kanava kirjastoon lisäämisen jälkeen"
 msgstr ""
 
 msgctxt "#30006"
-msgid "Limit imports (to save API quota)"
+msgid "Rajoita tuontia (Säästää API kiintiötä)"
 msgstr ""
 
 msgctxt "#30007"
-msgid "Limit"
+msgid "Rajoita"
 msgstr ""
 
 msgctxt "#30008"
@@ -69,158 +69,166 @@ msgid "DEV"
 msgstr ""
 
 msgctxt "#30010"
-msgid "use cache"
+msgid "Käytä puskuria"
 msgstr ""
 
 msgctxt "#30011"
-msgid "use cache"
+msgid "Käytä puskuria"
 msgstr ""
 
 msgctxt "#30012"
-msgid "Captain teststring"
+msgid "Kapteeni testilause"
 msgstr ""
 
 msgctxt "#30013"
-msgid "Captain {test}"
+msgid "Kapteeni {test}"
 msgstr ""
 
 msgctxt "#30014"
-msgid "No such channel."
+msgid "Kanavaa ei löydy."
 msgstr ""
 
 msgctxt "#30015"
-msgid "No such channel."
+msgid "Kanavaa ei löydy."
 msgstr ""
 
 msgctxt "#30016"
-msgid "Downloading channel info... "
+msgid "Ladataan kanavan tietoja... "
 msgstr ""
 
 msgctxt "#30017"
-msgid "SEASON: "
+msgid "KAUSI: "
 msgstr ""
 
 msgctxt "#30018"
-msgid "would you like to use the same API key you have set on YouTube addon?"
+msgid "Käytetäänkö samaa API-avainta kuin YouTube liitännäisessä?"
 msgstr ""
 
 msgctxt "#30019"
-msgid "You'll need to aquire YouTube API key for this addon to work. for instructions see: \nhttp://valkyr.xyz/ytapi"
+msgid "Tarvitset YouTube API-avaimen käyttääksesi  tätä liitännäistä\nOhjeet: \nhttp://valkyr.xyz/ytapi"
 msgstr ""
 
 msgctxt "#30020"
-msgid "API key"
+msgid "API-avain"
 msgstr ""
 
 msgctxt "#30021"
-msgid "Key is valid, thank you!"
+msgid "Avain kelpaa, kiitos!"
 msgstr ""
 
 msgctxt "#30022"
-msgid "Key is invalid"
+msgid "Avain ei kelpaa"
 msgstr ""
 
 msgctxt "#30023"
-msgid "Nothing given"
+msgid "Tyhjä"
 msgstr ""
 
 msgctxt "#30024"
-msgid "Importing channel..."
+msgid "Tuodaan kanavaa..."
 msgstr ""
 
 msgctxt "#30025"
-msgid "Please wait."
+msgid "Odotathan."
 msgstr ""
 
 msgctxt "#30026"
-msgid "Updating channels"
+msgid "Päivitetään kanavia."
 msgstr ""
 
 msgctxt "#30027"
-msgid "Update finished."
+msgid "Päivitys valmis."
 msgstr ""
 
 msgctxt "#30028"
-msgid "Add Channel"
+msgid "Lisää kanava"
 msgstr ""
 
 msgctxt "#30029"
-msgid "Manage"
+msgid "Hoida"
 msgstr ""
 
 msgctxt "#30030"
-msgid "Refresh all"
+msgid "Päivitä kaikki"
 msgstr ""
 
 msgctxt "#30031"
-msgid "Refresh"
+msgid "Päivitä"
 msgstr ""
 
 msgctxt "#30032"
-msgid "Addon Settings"
+msgid "Liitännäisen asetukset"
 msgstr ""
 
 #Please keep this 35 chars long if possible :)
 msgctxt "#30033"
-msgid "Next scheduled update in:          "
+msgid "Seuraavan päivityksen ajankohta:   "
 msgstr ""
 
 msgctxt "#30034"
-msgid "Time until token resets:"
+msgid "aikaa kunnes API kiintiö nollataan:"
 msgstr ""
 
 msgctxt "#30035"
-msgid "Delete: {0}"
+msgid "Poista: {0}"
 msgstr ""
 
 msgctxt "#30036"
-msgid "Are you sure you wish to remove {0}?"
+msgid "Haluatko varmasti poistaa {0}?"
 msgstr ""
 
 msgctxt "#30037"
-msgid "Remove {0} also from the library?"
+msgid "Poistetaanko {0} myös kirjastosta?"
 msgstr ""
 
 msgctxt "#30038"
-msgid "Search for a channel"
+msgid "Etsi kanavaa"
 msgstr ""
 
 msgctxt "#30039"
-msgid "Delete"
+msgid "Poista"
 msgstr ""
 
 msgctxt "#30040"
-msgid "as TV-Show"
+msgid "TV-ohjelmana"
 msgstr ""
 
 msgctxt "#30041"
-msgid "as Music Videos"
+msgid "Musiikkivideona"
 msgstr ""
 
 msgctxt "#30042"
-msgid "Music Videos"
+msgid "Musiikkivideot"
 msgstr ""
 
 msgctxt "#30043"
-msgid "TV-shows"
+msgid "TV-ohjelmat"
 msgstr ""
 
 msgctxt "#30044"
-msgid "Update"
+msgid "Päivitä"
 msgstr ""
 
 msgctxt "#30045"
-msgid "Playlists"
+msgid "Tuntia"
 msgstr ""
 
 msgctxt "#30046"
-msgid "Downloading playlists... "
+msgid "Tunti"
 msgstr ""
 
 msgctxt "#30047"
-msgid "YouTube"
+msgid "Minuuttia"
 msgstr ""
 
 msgctxt "#30048"
-msgid "Tubed"
+msgid "Minuutti"
+msgstr ""
+
+msgctxt "#30049"
+msgid "Sekuntia"
+msgstr ""
+
+msgctxt "#30050"
+msgid "Sekunti"
 msgstr ""

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="plugin.youtube2kodilibrary" name="YouTube to Library" version="0.0.8" provider-name="Evantaur">
+<addon id="plugin.youtube2kodilibrary" name="YouTube to Library" version="0.1.1" provider-name="Evantaur">
     <requires>
         <import addon="xbmc.python" version="2.2.0"/>
         <import addon="script.module.requests" version="2.12.4"/>
@@ -21,6 +21,20 @@
         <email></email>
         <source>https://github.com/evantaur/plugin.youtube2kodilibrary</source>
         <news>Changelog:
+            v0.1.1 (2021.1.28)
+            - Bug fixes
+            - Support for Tuber (Matrix only)
+
+            v0.1.0 Beta (2020.11.30)
+            - Support for playlists.
+            - Folder structure changed
+              so channel ID is used
+              instead of channel name.
+            - Fixed search for Leia.
+            - Split addon to multiple
+              files instead of one 
+              blob.
+
             v0.0.8 Beta (2020.6.9)
             - Support for music videos.
               (Thumbnails broken for v19)
