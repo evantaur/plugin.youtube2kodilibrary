@@ -1,0 +1,234 @@
+# Kodi Media Center language file
+# Addon Name: Skin Widgets
+# Addon id: plugin.youtube2kodilibrary
+# Addon Provider: Evantaur
+msgid ""
+msgstr ""
+"Project-Id-Version: plugin.youtube2kodilibrary\n"
+"Report-Msgid-Bugs-To: https://github.com/evantaur/plugin.youtube2kodilibrary\n"
+"POT-Creation-Date: 2020-06-11 12:00+0000\n"
+"PO-Revision-Date: 2020-06-11 12:00+0000\n"
+"Last-Translator: Evantaur <>\n"
+"Language-Team: English\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: en\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+###################################
+### Addon settings
+###################################
+
+msgctxt "Addon Summary"
+msgid "Tuo YouTube kanavia KODIn kirjastoon."
+msgstr ""
+
+msgctxt "Addon Description"
+msgid "Tuo YouTube kanavia KODIn kirjastoon, joko TV-ohjelmina, Musiikkivideoina tai Elokuvina"
+msgstr ""
+
+msgctxt "Addon Disclaimer"
+msgid ""
+msgstr ""
+
+msgctxt "#30001"
+msgid "Suositukset"
+msgstr ""
+
+msgctxt "#30002"
+msgid "You Tube API avain:"
+msgstr ""
+
+msgctxt "#30003"
+msgid "Tarkista uudet videot joka:"
+msgstr ""
+
+msgctxt "#30004"
+msgid "Tunti"
+msgstr ""
+
+msgctxt "#30005"
+msgid "Skannaa kanava kirjastoon lisäämisen jälkeen"
+msgstr ""
+
+msgctxt "#30006"
+msgid "Rajoita tuontia (Säästää API kiintiötä)"
+msgstr ""
+
+msgctxt "#30007"
+msgid "Rajoita"
+msgstr ""
+
+msgctxt "#30008"
+msgid "Default"
+msgstr ""
+
+msgctxt "#30009"
+msgid "DEV"
+msgstr ""
+
+msgctxt "#30010"
+msgid "Käytä puskuria"
+msgstr ""
+
+msgctxt "#30011"
+msgid "Käytä puskuria"
+msgstr ""
+
+msgctxt "#30012"
+msgid "Kapteeni testilause"
+msgstr ""
+
+msgctxt "#30013"
+msgid "Kapteeni {test}"
+msgstr ""
+
+msgctxt "#30014"
+msgid "Kanavaa ei löydy."
+msgstr ""
+
+msgctxt "#30015"
+msgid "Kanavaa ei löydy."
+msgstr ""
+
+msgctxt "#30016"
+msgid "Ladataan kanavan tietoja... "
+msgstr ""
+
+msgctxt "#30017"
+msgid "KAUSI: "
+msgstr ""
+
+msgctxt "#30018"
+msgid "Käytetäänkö samaa API-avainta kuin YouTube liitännäisessä?"
+msgstr ""
+
+msgctxt "#30019"
+msgid "Tarvitset YouTube API-avaimen käyttääksesi  tätä liitännäistä\nOhjeet: \nhttp://valkyr.xyz/ytapi"
+msgstr ""
+
+msgctxt "#30020"
+msgid "API-avain"
+msgstr ""
+
+msgctxt "#30021"
+msgid "Avain kelpaa, kiitos!"
+msgstr ""
+
+msgctxt "#30022"
+msgid "Avain ei kelpaa"
+msgstr ""
+
+msgctxt "#30023"
+msgid "Tyhjä"
+msgstr ""
+
+msgctxt "#30024"
+msgid "Tuodaan kanavaa..."
+msgstr ""
+
+msgctxt "#30025"
+msgid "Odotathan."
+msgstr ""
+
+msgctxt "#30026"
+msgid "Päivitetään kanavia."
+msgstr ""
+
+msgctxt "#30027"
+msgid "Päivitys valmis."
+msgstr ""
+
+msgctxt "#30028"
+msgid "Lisää kanava"
+msgstr ""
+
+msgctxt "#30029"
+msgid "Hoida"
+msgstr ""
+
+msgctxt "#30030"
+msgid "Päivitä kaikki"
+msgstr ""
+
+msgctxt "#30031"
+msgid "Päivitä"
+msgstr ""
+
+msgctxt "#30032"
+msgid "Liitännäisen asetukset"
+msgstr ""
+
+#Please keep this 35 chars long if possible :)
+msgctxt "#30033"
+msgid "Seuraavan päivityksen ajankohta:   "
+msgstr ""
+
+msgctxt "#30034"
+msgid "aikaa kunnes API kiintiö nollataan:"
+msgstr ""
+
+msgctxt "#30035"
+msgid "Poista: {0}"
+msgstr ""
+
+msgctxt "#30036"
+msgid "Haluatko varmasti poistaa {0}?"
+msgstr ""
+
+msgctxt "#30037"
+msgid "Poistetaanko {0} myös kirjastosta?"
+msgstr ""
+
+msgctxt "#30038"
+msgid "Etsi kanavaa"
+msgstr ""
+
+msgctxt "#30039"
+msgid "Poista"
+msgstr ""
+
+msgctxt "#30040"
+msgid "TV-ohjelmana"
+msgstr ""
+
+msgctxt "#30041"
+msgid "Musiikkivideona"
+msgstr ""
+
+msgctxt "#30042"
+msgid "Musiikkivideot"
+msgstr ""
+
+msgctxt "#30043"
+msgid "TV-ohjelmat"
+msgstr ""
+
+msgctxt "#30044"
+msgid "Päivitä"
+msgstr ""
+
+msgctxt "#30045"
+msgid "Tuntia"
+msgstr ""
+
+msgctxt "#30046"
+msgid "Tunti"
+msgstr ""
+
+msgctxt "#30047"
+msgid "Minuuttia"
+msgstr ""
+
+msgctxt "#30048"
+msgid "Minuutti"
+msgstr ""
+
+msgctxt "#30049"
+msgid "Sekuntia"
+msgstr ""
+
+msgctxt "#30050"
+msgid "Sekunti"
+msgstr ""

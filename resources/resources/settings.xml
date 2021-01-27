@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<settings>
+    <category label="30008">
+        <setting label="30002" type="text"   id="API_key" default=""/>
+        <setting label="YouTube Client" type="enum" id="YT_client" lvalues="30047"/>        
+        <setting label="30003" type="bool"   id="auto_refresh" default="true"/>
+        <setting subsetting="true" label="30004" type="slider" id="update_interval" default="12" range="2,2,168" option="int" />
+        <setting label="30005" type="bool"   id="refresh_after_add" default="true"/>
+        <setting type="sep"/>
+        <setting label="30006" type="bool"   id="toggle_import_limit" default="false"/>
+        <setting subsetting="true" label="30007" type="slider" id="import_limit" default="1000" range="500,500,10000" option="int" />
+    </category>
+    <category label="30009">
+        <setting label="30010" type="bool" id="use_cache" default="false"/>        
+        <setting label="logger" type="bool" id="logger" default="false"/> 
+    </category>    
+</settings>
