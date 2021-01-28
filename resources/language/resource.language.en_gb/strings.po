@@ -224,3 +224,15 @@ msgstr ""
 msgctxt "#30048"
 msgid "Tubed"
 msgstr ""
+
+msgctxt "#30049"
+msgid "Choose playlists"
+msgstr ""
+
+msgctxt "#30050"
+msgid "Name of playlist"
+msgstr ""
+
+msgctxt "#30051"
+msgid "Playlist "
+msgstr ""
