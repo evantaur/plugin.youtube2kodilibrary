@@ -1,5 +1,5 @@
-<?xml version="1.1" encoding="UTF-8" standalone="yes"?>
-<addon id="plugin.youtube2kodilibrary" name="YouTube to Library" version="0.1.1" provider-name="Evantaur">
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<addon id="plugin.youtube2kodilibrary" name="YouTube to Library" version="0.1.2" provider-name="Evantaur">
     <requires>
         <import addon="xbmc.python" version="2.2.0"/>
         <import addon="script.module.requests" version="2.12.4"/>
@@ -21,6 +21,11 @@
         <email></email>
         <source>https://github.com/evantaur/plugin.youtube2kodilibrary</source>
         <news>Changelog:
+            v0.1.2 (2021.1.28)            
+            - Improvements in progress
+              dialog when adding a playlist.
+            - Removed hardcoded strings.
+
             v0.1.1 (2021.1.28)
             - Bug fixes
             - Support for Tubed (Matrix only)
