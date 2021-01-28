@@ -185,7 +185,7 @@ def __parse_playlists(fullscan, playlists, channel_id, page_token=None, update=F
 
 
     __logger(playlists)
-    for playlist_id in playlists:
+    for enum,playlist_id in enumerate(playlists):
         __logger('Getting info for playlist: ' + playlist_id)
         url = "https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50&playlistId="+playlist_id+"&key="+addon.getSetting('API_key')
         #reply = c_download(url)
@@ -222,9 +222,9 @@ def __parse_playlists(fullscan, playlists, channel_id, page_token=None, update=F
                     # so let's not use it in leia....
                     if PY_V >= 3:
                         # "Downloading channel info"
-                        dialog_string=AddonString(30046) + str(PARSER['items']) + '/' + str(PARSER['total']) + '\n' + AddonString(30017) + str(season)
+                        dialog_string=AddonString(30051) + str(enum) +'/' + str(len(playlists)) + '\n' + AddonString(30046) + str(PARSER['items']) + '/' + str(PARSER['total']) + '\n' + AddonString(30017) + str(season)
                     else:
-                        dialog_string=AddonString(30046) + str(PARSER['items']) + '/' + str(PARSER['total']) + '     ' + AddonString(30017) + str(season)
+                        dialog_string=AddonString(30051) + str(enum) +'/' + str(len(playlists)) + '                                                                           ' + AddonString(30046) + str(PARSER['items']) + '/' + str(PARSER['total']) + '     ' + AddonString(30017) + str(season)
                     PDIALOG.update(int(100 * PARSER['steps'] / PARSER['total_steps']), dialog_string)
                 __get_video_details(vid)
             if 'nextPageToken' not in reply or not fullscan or PARSER['items'] >= PARSER['total']:
@@ -383,7 +383,7 @@ def __render(type,render_style='Full'):
             try:
                 data['video_duration'] = VIDEO_DURATION[data['video_id']]
             except KeyError:
-                data['video_duration'] = 0 # NO FUCKING IDEA WHAT IS GOING ON
+                data['video_duration'] = 0 # NO F***ING IDEA WHAT IS GOING ON
             if 'maxres' in item['snippet']['thumbnails']:
                 data['thumb'] = item['snippet']['thumbnails']['maxres']['url']
             elif 'high' in item['snippet']['thumbnails']:
@@ -486,28 +486,36 @@ def __select_playlists(a,C_ID=[],selected=None):
             if i['id'] in CONFIG['playlists'][C_ID]['playlist_id']:
                 _preselect.append(idx)
         dialog = xbmcgui.Dialog()
-        ret = dialog.multiselect("Choose playlists", menuItems,preselect=_preselect)
+        #Choose playlists
+        ret = dialog.multiselect(AddonString(30049), menuItems,preselect=_preselect)
         if ret:
             __logger(ret)
             playlist_ids=[]
             for x in ret:
                 playlist_ids.append(a['items'][x]['id'])
             return playlist_ids
+        else:
+            sys.exit("Nothing chosen")
     else:
         for i in a['items']:
             menuItems.append(i['snippet']['title'])
         __logger(a['items'])
         dialog = xbmcgui.Dialog()
-        ret = dialog.multiselect("Choose playlists", menuItems)
+        #Choose playlist
+        ret = dialog.multiselect(AddonString(30049), menuItems)
         if ret:
             __logger(ret)
             playlist_ids=[]
+            title_suggestion=a['items'][min(ret)]['snippet']['title']
             for x in ret:
                 playlist_ids.append(a['items'][x]['id'])
             __logger(playlist_ids)
-            playlist_title=__ask(a['items'][0]['snippet']['title'],'Name of playlist')
+            #Name of playlist
+            playlist_title=__ask(title_suggestion,AddonString(30050))
             return_object={}
             return_object['title'] = playlist_title
             return_object['items'] = playlist_ids
             return return_object
+        else:
+            sys.exit("Nothing chosen")
 
