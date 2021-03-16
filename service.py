@@ -7,6 +7,16 @@ import xbmc
 import xbmcvfs
 import xbmcaddon
 import sys
+import requests
+
+def CheckInternet():
+    try:
+        q = requests.get('https://youtu.be')
+        if (q.status_code):
+            return True
+        return False
+    except:
+        return False
 
 PY_V = sys.version_info[0]
 
