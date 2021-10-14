@@ -21,3 +21,5 @@ FOR MUSIC VIDEOS:
 **special://profile/library/music_videos**
 
 and for information provider choose local
+
+<a href="https://www.buymeacoffee.com/evantaur" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
