@@ -5,7 +5,7 @@ Add Youtube Channels as TV shows (or as music videos) to KODI.
 
 <a href="https://forum.kodi.tv/showthread.php?tid=354748">Addon thread at KODI forums</a>
 
-[![YOUTUBE](https://img.youtube.com/vi/nr1DuCJD4lQ/0.jpg)](https://www.youtube.com/embed/nr1DuCJD4lQ)
+[![YOUTUBE](https://img.youtube.com/vi/nr1DuCJD4lQ/0.jpg)](https://www.youtube.com/watch?v=nr1DuCJD4lQ)
 
 
 <br/><br/><br/>
