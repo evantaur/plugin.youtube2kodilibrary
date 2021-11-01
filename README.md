@@ -1,5 +1,14 @@
 # plugin.youtube2kodilibrary
-YouTube channels to KODI
+Add Youtube Channels as TV shows (or as music videos) to KODI.
+<img src="https://user-images.githubusercontent.com/23665282/139370255-155e06b9-74ec-449d-b9fe-38a442a8c9f3.png" alt="Linus Tech Tips" width=640>
+<img src="https://user-images.githubusercontent.com/23665282/139370245-ec2b44d7-648c-4ee8-8058-2c2b10428418.png" alt="Disrupt" width=640>
+
+<a href="https://forum.kodi.tv/showthread.php?tid=354748">Addon thread at KODI forums</a>
+
+[![YOUTUBE](https://img.youtube.com/vi/nr1DuCJD4lQ/0.jpg)](https://www.youtube.com/embed/nr1DuCJD4lQ)
+
+
+<br/><br/><br/>
 
 LEIA version here:
 https://github.com/evantaur/plugin.youtube2kodilibrary/tree/Leia
