@@ -16,7 +16,7 @@ https://github.com/evantaur/plugin.youtube2kodilibrary/tree/Leia
 ###### API key
 
 You'll need YouTube API key for this to work, a good guide would be:
-https://github.com/jdf76/plugin.video.youtube/wiki/Personal-API-Keys
+https://github.com/anxdpanic/plugin.video.youtube/wiki/Personal-API-Keys
 
 if you have set custom api key for YouTube addon you should be able to skip this part.
 
