@@ -9,6 +9,7 @@ Add Youtube Channels as TV shows (or as music videos) to KODI.
 
 
 <br/><br/><br/>
+* Note! This plugin is under complete rewrite, the newer version will release as soon as possible but it'll take some time as my ability to work on it is limited. Follow the support thread on KODI forums for updates. If you have a feature request please drop it there, or feel free to open an issue for it.
 
 LEIA version here:
 https://github.com/evantaur/plugin.youtube2kodilibrary/tree/Leia
