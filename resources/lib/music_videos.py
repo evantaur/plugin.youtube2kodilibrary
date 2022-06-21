@@ -110,6 +110,8 @@ def __get_video_details(array):
 
 def __yt_duration(in_time):
     duration = 1
+    if "PT" not in in_time:
+        return str(0)
     time = in_time.split("PT")[1]
     if 'H' in time and 'M' in time and 'S' in time:
         duration = int(time.split("H")[0])*60 + int(time.split("H")[1].split("M")[0])
@@ -119,7 +121,8 @@ def __yt_duration(in_time):
         duration = int(time.split("H")[0])*60
     elif 'M' in time and 'S' in time:
         duration = int(time.split("M")[0])
-    return str(duration)        
+    return str(duration)
+    
 
 def __render(type,render_style='Full'):
 #RENDER MUSIC    
