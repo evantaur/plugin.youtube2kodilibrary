@@ -105,7 +105,7 @@ msgid "would you like to use the same API key you have set on YouTube addon?"
 msgstr ""
 
 msgctxt "#30019"
-msgid "You'll need to aquire YouTube API key for this addon to work. for instructions see: \nhttp://valkyr.xyz/ytapi"
+msgid "You'll need to aquire YouTube API key for this addon to work. for instructions see: \nhttps://yt.spectralwolf.eu/"
 msgstr ""
 
 msgctxt "#30020"
